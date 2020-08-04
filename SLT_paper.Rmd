@@ -5,35 +5,146 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Open Data and first look
-
-```{r data}
 library(tidyverse)
-data_all <- read_delim("/Users/chiarasemenzin/Desktop/dc/final_classifications_PU.csv", delim=',',col_types = cols(.default = "c"))
-nb_answers_new <- data_all %>%
-  group_by(segmentId_DB) %>%
-  count()
-print(paste("Number of clips with at least one annotation:", nrow(nb_answers_new)))
-not_finished_new <- nb_answers_new %>%
-  filter(n<=2)
-print(paste("Number of clips with at least one annotation missing:",nrow(not_finished_new)))
-three_answers_new <- nb_answers_new %>%
-  filter(n>=3)
-print(paste("Number of clips with three annotations:",nrow(three_answers_new)))
+library(dplyr)
+library(ggplot2)
+library(caret)
+
+dodiv=function(x) x/sum(x, na.rm=T)
+
 ```
+
+```{r}
+read.csv("first_class_lisa.csv")->zoon
+summary(zoon)
+
+read.csv("Metadata_batch2_lisa.csv",sep="\t")->md
+summary(md)
+#? correct errors in md? onset           offset       chunk_pos
+
+read.csv("result_final_lisa.csv")->lab
+summary(lab)
+
+data_all <- read.csv("final_classifications_PU_zoon.csv")
+
+#remove the word mixed that takes up space and is unnecessary
+data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
+
+data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=c("Canonical","Non-Canonical",
+                                                             "Crying","Laughing","Junk",levels(data_all$Zoon_classif)[grep("_",levels(data_all$Zoon_classif))]))
+
+
+# create lab column with easier to read correspondance
+data_all$lab<-as.character(data_all$Major_Choice)
+data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
+data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
+data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
+data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
+
+```
+
+
+
+## correspondence
+i) quantifying the correspondence between expert human annotations and Zooniverse annotations %(confusion matrix) 
+and 
+
+```{r}
+table(data_all$lab)
+table(data_all$Zoon_classif)
+
+mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
+
+conf_tab=mycf$table
+
+# this package uses sensitivity & specificity
+#Sensitivity=recall
+#Specificity=precision
+
+
+```
+
+```{r prec}
+pdf("precision_with_mixed.pdf",height=10,width=10)
+prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"pr"
+
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","pr")])
+
+
+
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(pr)), colour = "white") +
+  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
+  geom_text(aes(label = Freq), vjust = 1,size=2) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+dev.off()
+```
+
+```{r recall}
+pdf("recall_with_mixed.pdf",height=10,width=10)
+prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"rec"
+
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","rec")])
+
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(rec)), colour = "white") +
+  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=2) +
+  geom_text(aes(label = Freq), vjust = 1,size=2) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Recall")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+dev.off()
+```
+
+## What is said about infants
+
+ii) examining the correspondences between descriptors at the child level across the two annotation settings (e.g. CR-AGE correlations).
+
+```{r by child}
+
+#given results above, we map the mixed
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Crying"]<-"Crying"
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"Non-Canonical"
+
+#and reset the factors for cleanliness
+data_all$Zoon_classif=factor(data_all$Zoon_classif)
+data_all$lab=factor(data_all$lab)
+
+zoon_sums = data_all %>% group_by(ChildID,Zoon_classif) %>% tally()
+colnames(zoon_sums)<-c("ChildID",      "Zoon_classif", "n_zoo")
+lab_sums = data_all %>% group_by(ChildID,lab) %>% tally()
+zoon_sums$id=paste(zoon_sums$ChildID,zoon_sums$Zoon_classif)
+lab_sums$id=paste(lab_sums$ChildID,lab_sums$lab)
+sums=merge(zoon_sums,lab_sums[,c("lab" ,  "n", "id")],by="id",all=T)
+
+```
+
 
 
 # Canonical Rate analysis by Age & ChildID
 
 ```{r CR by Age}
-df.sub <- subset(data_all, Zoon_classif != "Junk" | Zoon_classif != "Crying" | Zoon_classif != "Laughing")
+df.sub <- subset(data_all, Zoon_classif %in% c("Canonical","Non-Canonical"))
 
 ### By Age
-library(dplyr)
-library(ggplot2)
-
 n.can <- as.data.frame(df.sub %>% group_by(Age) %>% filter(Zoon_classif == "Canonical") %>% summarise(n.can = n()))
 n.non.can <- as.data.frame(df.sub %>% group_by(Age) %>% filter(Zoon_classif == "Non-Canonical") %>% summarise(n.non.can = n()))
 n.tot <- merge(n.can, n.non.can)
