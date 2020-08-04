@@ -1,0 +1,75 @@
+---
+title: "SLT_paper"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Open Data and first look
+
+```{r data}
+library(tidyverse)
+data_all <- read_delim("/Users/chiarasemenzin/Desktop/dc/final_classifications_PU.csv", delim=',',col_types = cols(.default = "c"))
+nb_answers_new <- data_all %>%
+  group_by(segmentId_DB) %>%
+  count()
+print(paste("Number of clips with at least one annotation:", nrow(nb_answers_new)))
+not_finished_new <- nb_answers_new %>%
+  filter(n<=2)
+print(paste("Number of clips with at least one annotation missing:",nrow(not_finished_new)))
+three_answers_new <- nb_answers_new %>%
+  filter(n>=3)
+print(paste("Number of clips with three annotations:",nrow(three_answers_new)))
+```
+
+
+# Canonical Rate analysis by Age & ChildID
+
+```{r CR by Age}
+df.sub <- subset(data_all, Zoon_classif != "Junk" | Zoon_classif != "Crying" | Zoon_classif != "Laughing")
+
+### By Age
+library(dplyr)
+library(ggplot2)
+
+n.can <- as.data.frame(df.sub %>% group_by(Age) %>% filter(Zoon_classif == "Canonical") %>% summarise(n.can = n()))
+n.non.can <- as.data.frame(df.sub %>% group_by(Age) %>% filter(Zoon_classif == "Non-Canonical") %>% summarise(n.non.can = n()))
+n.tot <- merge(n.can, n.non.can)
+n.tot$ratio.can <- n.tot$n.can/(n.tot$n.can + n.tot$n.non.can)
+n.tot$ratio.non.can <- n.tot$n.non.can/(n.tot$n.can + n.tot$n.non.can)
+
+### CANONICAL
+df.plot <- rbind(data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.can, Cat = "Canonical"))
+ggplot(df.plot, aes(fill=Cat, y=Ratio, x=Age)) + 
+  geom_bar(position="dodge", stat="identity")
+
+### NONCANONICAL
+df.plot <- rbind(data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.non.can, Cat = "Non-Canonical"))
+ggplot(df.plot, aes(fill=Cat, y=Ratio, x=Age)) + 
+  geom_bar(position="dodge", stat="identity")
+
+###BOTH
+
+df.plot <- rbind(data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.can, Cat = "Canonical"),data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.non.can, Cat = "Non-canonical"))
+
+ggplot(df.plot, aes(fill=Cat, y=Ratio, x=Age)) + 
+  geom_bar(position="dodge", stat="identity")
+```
+
+```{r ChildID}
+### By Recording (=Child ID)
+n.can <- as.data.frame(df.sub %>% group_by(ChildID) %>% filter(Zoon_classif == "Canonical") %>% summarise(n.can = n()))
+n.non.can <- as.data.frame(df.sub %>% group_by(ChildID) %>% filter(Zoon_classif == "Non-Canonical") %>% summarise(n.non.can = n()))
+n.tot <- merge(n.can, n.non.can)
+n.tot$ratio.can <- n.tot$n.can/(n.tot$n.can + n.tot$n.non.can)
+n.tot$ratio.non.can <- n.tot$n.non.can/(n.tot$n.can + n.tot$n.non.can)
+df.plot <- rbind(data.frame(ChildID = as.factor(n.tot$ChildID), Ratio = n.tot$ratio.can, Cat = "Canonical"),
+                 data.frame(ChildID = as.factor(n.tot$ChildID), Ratio = n.tot$ratio.non.can, Cat = "Non-Canonical"))
+
+ggplot(df.plot, aes(fill=Cat, y=Ratio, x=ChildID)) + 
+  geom_bar(position="dodge", stat="identity")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
