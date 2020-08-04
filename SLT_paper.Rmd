@@ -9,6 +9,7 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(caret)
+library(scales)
 
 dodiv=function(x) x/sum(x, na.rm=T)
 
@@ -114,7 +115,7 @@ dev.off()
 
 ii) examining the correspondences between descriptors at the child level across the two annotation settings (e.g. CR-AGE correlations).
 
-```{r by child}
+```{r prepare data by child}
 
 #given results above, we map the mixed
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
@@ -128,15 +129,35 @@ data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"
 data_all$Zoon_classif=factor(data_all$Zoon_classif)
 data_all$lab=factor(data_all$lab)
 
-zoon_sums = data_all %>% group_by(ChildID,Zoon_classif) %>% tally()
-colnames(zoon_sums)<-c("ChildID",      "Zoon_classif", "n_zoo")
-lab_sums = data_all %>% group_by(ChildID,lab) %>% tally()
+## broken here!!
+zoon_sums = data_all %>% group_by(ChildID,Zoon_classif, Age) %>% count(.drop = FALSE) #it's still dropping empty levels
+colnames(zoon_sums)<-c("ChildID",      "Zoon_classif","Age", "n_zoo")
 zoon_sums$id=paste(zoon_sums$ChildID,zoon_sums$Zoon_classif)
+#add zeros
+table(zoon_sums$ChildID,zoon_sums$Zoon_classif)==0
+mytab=table(zoon_sums$ChildID,zoon_sums$Zoon_classif)
+for(i in 1:dim(mytab)[1]) for(j in 1:dim(mytab)[2]) if(mytab[i,j]==0){
+  zero_line=cbind(rownames(mytab)[i],colnames(mytab)[j],data_all[data_all$ChildID==rownames(mytab)[i],"Age"][1],0)
+  colnames(zero_line)<-colnames(zoon_sums)
+  zoon_sums=rbind(zoon_sums,
+                zero_line)
+} 
+
+lab_sums = data_all %>% group_by(ChildID, lab, Age) %>% count(.drop = FALSE)
 lab_sums$id=paste(lab_sums$ChildID,lab_sums$lab)
-sums=merge(zoon_sums,lab_sums[,c("lab" ,  "n", "id")],by="id",all=T)
+sums=merge(zoon_sums,lab_sums[,c("lab", "Age" ,  "n", "id")],by="id",all=T)
+sums$age=ifelse(!is.na(sums$Age.x),sums$Age.x,sums$Age.y)
+summary(sums)
+
+l_nl_z=zoon_sums$Zoon_classif
 
 ```
 
+```{r corage}
+
+plot()
+
+```
 
 
 # Canonical Rate analysis by Age & ChildID
