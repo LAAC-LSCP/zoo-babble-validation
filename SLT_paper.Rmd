@@ -1,7 +1,17 @@
 ---
 title: "SLT_paper"
-output: html_document
+author: "AC"
+date: "2020-03-06 (substantive version), latest minor edits 2020-07-17"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '3'
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -15,22 +25,21 @@ dodiv=function(x) x/sum(x, na.rm=T)
 
 ```
 
+
+## History:
+
+- 2020-08-05 final first version
+
+## Read data in
+
 ```{r}
-read.csv("first_class_lisa.csv")->zoon
-summary(zoon)
-
-read.csv("Metadata_batch2_lisa.csv",sep="\t")->md
-summary(md)
-#? correct errors in md? onset           offset       chunk_pos
-
-read.csv("result_final_lisa.csv")->lab
-summary(lab)
-
+# read dataset composed with python
 data_all <- read.csv("final_classifications_PU_zoon.csv")
 
 #remove the word mixed that takes up space and is unnecessary
 data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
 
+#relevel the factor so that it's easier to read
 data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=c("Canonical","Non-Canonical",
                                                              "Crying","Laughing","Junk",levels(data_all$Zoon_classif)[grep("_",levels(data_all$Zoon_classif))]))
 
@@ -41,14 +50,15 @@ data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
 data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
 data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
 data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
-
+#apply same factor levels as zooniverse so that we can do symmetrical confusion matrices
 ```
 
 
 
-## correspondence
-i) quantifying the correspondence between expert human annotations and Zooniverse annotations %(confusion matrix) 
-and 
+## Correspondence between lab & zooniverse annotation at the level of segments
+
+Here we look at to what extent zooniverse and lab annotations match at the level of individual segments. Each data point is one segment (one "vocalization").
+
 
 ```{r}
 table(data_all$lab)
@@ -62,8 +72,13 @@ conf_tab=mycf$table
 #Sensitivity=recall
 #Specificity=precision
 
+mycf
 
 ```
+
+### Precision
+
+Precision means: If a segment was called X by zooniverse coders, what proportion of the time was it called X by lab coders?
 
 ```{r prec}
 pdf("precision_with_mixed.pdf",height=10,width=10)
@@ -88,6 +103,10 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 dev.off()
 ```
 
+### Recall
+
+Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
+
 ```{r recall}
 pdf("recall_with_mixed.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
@@ -111,9 +130,9 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 dev.off()
 ```
 
-## What is said about infants
+## Child level descriptors
 
-ii) examining the correspondences between descriptors at the child level across the two annotation settings (e.g. CR-AGE correlations).
+Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section.
 
 ```{r prepare data by child}
 
@@ -129,79 +148,74 @@ data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"
 data_all$Zoon_classif=factor(data_all$Zoon_classif)
 data_all$lab=factor(data_all$lab)
 
-## broken here!!
-zoon_sums = data_all %>% group_by(ChildID,Zoon_classif, Age) %>% count(.drop = FALSE) #it's still dropping empty levels
-colnames(zoon_sums)<-c("ChildID",      "Zoon_classif","Age", "n_zoo")
-zoon_sums$id=paste(zoon_sums$ChildID,zoon_sums$Zoon_classif)
-#add zeros
-table(zoon_sums$ChildID,zoon_sums$Zoon_classif)==0
-mytab=table(zoon_sums$ChildID,zoon_sums$Zoon_classif)
-for(i in 1:dim(mytab)[1]) for(j in 1:dim(mytab)[2]) if(mytab[i,j]==0){
-  zero_line=cbind(rownames(mytab)[i],colnames(mytab)[j],data_all[data_all$ChildID==rownames(mytab)[i],"Age"][1],0)
-  colnames(zero_line)<-colnames(zoon_sums)
-  zoon_sums=rbind(zoon_sums,
-                zero_line)
-} 
+#get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
+ztab=table(data_all$ChildID,data_all$Zoon_classif)
+z_lr=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
+z_cr=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
 
-lab_sums = data_all %>% group_by(ChildID, lab, Age) %>% count(.drop = FALSE)
-lab_sums$id=paste(lab_sums$ChildID,lab_sums$lab)
-sums=merge(zoon_sums,lab_sums[,c("lab", "Age" ,  "n", "id")],by="id",all=T)
-sums$age=ifelse(!is.na(sums$Age.x),sums$Age.x,sums$Age.y)
-summary(sums)
+ltab=table(data_all$ChildID,data_all$lab)
+l_lr=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
+l_cr=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
 
-l_nl_z=zoon_sums$Zoon_classif
+#put all the ratios together
+if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) ratios=cbind(rownames(ztab),z_lr,z_cr,l_lr,l_cr) else print("oops this code needs to be more complex because we don't have the same kids for the two ratios")
+colnames(ratios)[1]<-"ChildID"
 
+#add age
+ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
+
+merge(ratios,ages,by.x="ChildID",by.y="Group.1")->ratios
+colnames(ratios)[dim(ratios)[2]]<-"Age"
+
+#cbinding results in text, so we numerize the ratios
+for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) ratios[,thisvar]=as.numeric(as.character(ratios[,thisvar]))
+summary(ratios)
 ```
+
+We first look generally at two measures that have been found to relate to age:
+
+- linguistic ratio = ("Canonical"+"Non-Canonical")/"All vocalizations" (i.e. we remove junk)
+- canonical ratio = "Canonical"/("Canonical"+"Non-Canonical") (i.e. we remove junk + non-linguistic vocalizations)
+
+
+As expected, linguistic ratio goes up with age.
+
+Surprisingly, canonical ratio goes DOWN with age.
 
 ```{r corage}
-
-plot()
+prettynames=c("Linguistic Ratio (Zooniverse)","Canonical Ratio (Zooniverse)",
+             "Linguistic Ratio (Lab)","Canonical Ratio (Lab)" )
+names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
+for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
+  myr=round(cor.test(ratios[,thisvar],ratios$Age)$estimate,3)
+  plot(ratios[,thisvar]~ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr))
+  abline(lm(ratios[,thisvar]~ratios$Age))
+  }
 
 ```
 
 
-# Canonical Rate analysis by Age & ChildID
+But the key thing for us: Are Zooniverse annotations describing children similar to lab annotations? The answer is clearly yes.
 
-```{r CR by Age}
-df.sub <- subset(data_all, Zoon_classif %in% c("Canonical","Non-Canonical"))
+```{r corlab-zoo}
 
-### By Age
-n.can <- as.data.frame(df.sub %>% group_by(Age) %>% filter(Zoon_classif == "Canonical") %>% summarise(n.can = n()))
-n.non.can <- as.data.frame(df.sub %>% group_by(Age) %>% filter(Zoon_classif == "Non-Canonical") %>% summarise(n.non.can = n()))
-n.tot <- merge(n.can, n.non.can)
-n.tot$ratio.can <- n.tot$n.can/(n.tot$n.can + n.tot$n.non.can)
-n.tot$ratio.non.can <- n.tot$n.non.can/(n.tot$n.can + n.tot$n.non.can)
+#Ling ratio
+pdf("ling_rat_z_vs_l.pdf",height=5,width=5)
+lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
+  myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
+  plot(ratios[,"z_lr"]~ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
+       xlim=lims,ylim=lims)
+  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]))
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+dev.off()
 
-### CANONICAL
-df.plot <- rbind(data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.can, Cat = "Canonical"))
-ggplot(df.plot, aes(fill=Cat, y=Ratio, x=Age)) + 
-  geom_bar(position="dodge", stat="identity")
-
-### NONCANONICAL
-df.plot <- rbind(data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.non.can, Cat = "Non-Canonical"))
-ggplot(df.plot, aes(fill=Cat, y=Ratio, x=Age)) + 
-  geom_bar(position="dodge", stat="identity")
-
-###BOTH
-
-df.plot <- rbind(data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.can, Cat = "Canonical"),data.frame(Age = as.factor(n.tot$Age), Ratio = n.tot$ratio.non.can, Cat = "Non-canonical"))
-
-ggplot(df.plot, aes(fill=Cat, y=Ratio, x=Age)) + 
-  geom_bar(position="dodge", stat="identity")
+  #CR
+pdf("can_rat_z_vs_l.pdf",height=5,width=5)
+lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
+    myr=round(cor.test(ratios[,"z_cr"],ratios[,"l_cr"])$estimate,3)
+  plot(ratios[,"z_cr"]~ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
+       xlim=lims,ylim=lims)
+  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]),col="darkgray")
+    lines(c(0,1),c(0,1),lty=2,col="darkgray")
+dev.off()
 ```
-
-```{r ChildID}
-### By Recording (=Child ID)
-n.can <- as.data.frame(df.sub %>% group_by(ChildID) %>% filter(Zoon_classif == "Canonical") %>% summarise(n.can = n()))
-n.non.can <- as.data.frame(df.sub %>% group_by(ChildID) %>% filter(Zoon_classif == "Non-Canonical") %>% summarise(n.non.can = n()))
-n.tot <- merge(n.can, n.non.can)
-n.tot$ratio.can <- n.tot$n.can/(n.tot$n.can + n.tot$n.non.can)
-n.tot$ratio.non.can <- n.tot$n.non.can/(n.tot$n.can + n.tot$n.non.can)
-df.plot <- rbind(data.frame(ChildID = as.factor(n.tot$ChildID), Ratio = n.tot$ratio.can, Cat = "Canonical"),
-                 data.frame(ChildID = as.factor(n.tot$ChildID), Ratio = n.tot$ratio.non.can, Cat = "Non-Canonical"))
-
-ggplot(df.plot, aes(fill=Cat, y=Ratio, x=ChildID)) + 
-  geom_bar(position="dodge", stat="identity")
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
