@@ -84,7 +84,85 @@ mycf
 Precision means: If a segment was called X by zooniverse coders, what proportion of the time was it called X by lab coders?
 
 ```{r prec}
-pdf("precision_with_mixed.pdf",height=10,width=10)
+
+prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"pr"
+
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","pr")])
+
+
+
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(pr)), colour = "white") +
+  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
+  geom_text(aes(label = Freq), vjust = 1,size=2) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+### Recall
+
+Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
+
+```{r rec}
+prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"pr"
+
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","pr")])
+
+
+
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(pr)), colour = "white") +
+  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
+  geom_text(aes(label = Freq), vjust = 1,size=2) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+
+## repeat collapsing
+
+
+```{r}
+
+#given results above, we map the mixed
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Crying"]<-"Crying"
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"Non-Canonical"
+
+#and reset the factors for cleanliness
+data_all$Zoon_classif=factor(data_all$Zoon_classif)
+data_all$lab=factor(data_all$lab)
+
+mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
+conf_tab=mycf$table
+
+# this package uses sensitivity & specificity
+#Sensitivity=recall
+#Specificity=precision
+
+mycf
+
+```
+
+```{r prec2}
+pdf("precision.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"pr"
@@ -106,12 +184,8 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 dev.off()
 ```
 
-### Recall
-
-Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
-
-```{r recall}
-pdf("recall_with_mixed.pdf",height=10,width=10)
+```{r recall2}
+pdf("recall.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -132,24 +206,12 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 
 dev.off()
 ```
-
 ## Child level descriptors
 
 Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
 
 ```{r prepare data by child}
 
-#given results above, we map the mixed
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Crying"]<-"Crying"
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"Non-Canonical"
-
-#and reset the factors for cleanliness
-data_all$Zoon_classif=factor(data_all$Zoon_classif)
-data_all$lab=factor(data_all$lab)
 
 #get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
 ztab=table(data_all$ChildID,data_all$Zoon_classif)
