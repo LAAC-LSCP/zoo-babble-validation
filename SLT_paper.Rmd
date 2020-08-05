@@ -33,6 +33,9 @@ dodiv=function(x) x/sum(x, na.rm=T)
 ## Read data in
 
 ```{r}
+#read demo data created by AC from info in paper
+demo_data=read.csv("demo-data.tsv",sep="\t")
+
 # read dataset composed with python
 data_all <- read.csv("final_classifications_PU_zoon.csv")
 
@@ -132,7 +135,7 @@ dev.off()
 
 ## Child level descriptors
 
-Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section.
+Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
 
 ```{r prepare data by child}
 
@@ -162,9 +165,11 @@ if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) ratios=cbind(rownames(ztab
 colnames(ratios)[1]<-"ChildID"
 
 #add age
-ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
+#ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
+#improvement: now we merge with a demo data tab, but note this is merged with child id, so the problem of multiple recs per child is still there
 
-merge(ratios,ages,by.x="ChildID",by.y="Group.1")->ratios
+
+merge(ratios,demo_data,by="ChildID")->ratios
 colnames(ratios)[dim(ratios)[2]]<-"Age"
 
 #cbinding results in text, so we numerize the ratios
@@ -186,9 +191,15 @@ Surprisingly, canonical ratio goes DOWN with age.
 prettynames=c("Linguistic Ratio (Zooniverse)","Canonical Ratio (Zooniverse)",
              "Linguistic Ratio (Lab)","Canonical Ratio (Lab)" )
 names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
+
+#!!! this is working the opposite than it should! but note that to get angsynd kids to come out in red, I have to do it like this -- it doesn't make sense...
+mycols=c("red","black")
+names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
+
 for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
   myr=round(cor.test(ratios[,thisvar],ratios$Age)$estimate,3)
-  plot(ratios[,thisvar]~ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr))
+  plot(ratios[,thisvar]~ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr),
+       col=mycols[ratios$Diagnosis])
   abline(lm(ratios[,thisvar]~ratios$Age))
   }
 
@@ -204,7 +215,8 @@ pdf("ling_rat_z_vs_l.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
   myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
   plot(ratios[,"z_lr"]~ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims)
+       xlim=lims,ylim=lims,
+       col=mycols[ratios$Diagnosis])
   abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]))
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
@@ -214,7 +226,8 @@ pdf("can_rat_z_vs_l.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
     myr=round(cor.test(ratios[,"z_cr"],ratios[,"l_cr"])$estimate,3)
   plot(ratios[,"z_cr"]~ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims)
+       xlim=lims,ylim=lims,
+       col=mycols[ratios$Diagnosis])
   abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]),col="darkgray")
     lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
