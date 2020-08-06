@@ -175,12 +175,13 @@ stall=merge(stall,prop_cat[c("id","pr")])
 
 ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
-  geom_text(aes(label = Freq), vjust = 1,size=2) +
-  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=8) +
+  geom_text(aes(label = Freq), vjust = 1,size=8) +
+  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  ggtitle("Precision")+theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, hjust=1))
 dev.off()
 ```
 
@@ -196,12 +197,13 @@ stall=merge(stall,prop_cat[c("id","rec")])
 
 ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(rec)), colour = "white") +
-  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=2) +
-  geom_text(aes(label = Freq), vjust = 1,size=2) +
-  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=8) +
+  geom_text(aes(label = Freq), vjust = 1,size=8) +
+  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  ggtitle("Recall")+theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, hjust=1))
 
 
 dev.off()
@@ -293,4 +295,21 @@ lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
   abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]),col="darkgray")
     lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
+
+
+#COMBINED to save space
+pdf("combined.pdf",height=5,width=5)
+lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]),c(ratios[,"z_cr"],ratios[,"l_cr"]))
+  #myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
+
+  plot(ratios[,"z_lr"]~ratios[,"l_lr"],xlab="Laboratory annotations",ylab="Zooniverse annotations",
+       xlim=lims,ylim=lims,
+       pch=20,col=mycols[ratios$Diagnosis])
+    points(ratios[,"z_cr"]~ratios[,"l_cr"], pch=2, col=mycols[ratios$Diagnosis])
+  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]))
+  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]),lty=3)
+ # lines(c(0,1),c(0,1),lty=2,col="darkgray")
+dev.off()
+
+
 ```
