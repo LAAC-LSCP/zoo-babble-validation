@@ -34,10 +34,10 @@ dodiv=function(x) x/sum(x, na.rm=T)
 
 ```{r}
 #read demo data created by AC from info in paper
-demo_data=read.csv("demo-data.tsv",sep="\t")
+demo_data=read.csv("./Data/demo-data.tsv",sep="\t")
 
 # read dataset composed with python
-data_all <- read.csv("final_classifications_PU_zoon.csv")
+data_all <- read.csv("./Data/new_classifications_PU_zoon.csv")
 
 #remove the word mixed that takes up space and is unnecessary
 data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
@@ -162,7 +162,7 @@ mycf
 ```
 
 ```{r prec2}
-pdf("precision.pdf",height=10,width=10)
+pdf("./Results/precision.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"pr"
@@ -186,7 +186,7 @@ dev.off()
 ```
 
 ```{r recall2}
-pdf("recall.pdf",height=10,width=10)
+pdf("./Results/recall.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -275,7 +275,7 @@ But the key thing for us: Are Zooniverse annotations describing children similar
 ```{r corlab-zoo}
 
 #Ling ratio
-pdf("ling_rat_z_vs_l.pdf",height=5,width=5)
+pdf("./Results/ling_rat_z_vs_l.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
   myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
   plot(ratios[,"z_lr"]~ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
@@ -286,7 +286,7 @@ lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
 dev.off()
 
   #CR
-pdf("can_rat_z_vs_l.pdf",height=5,width=5)
+pdf("./Results/can_rat_z_vs_l.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
     myr=round(cor.test(ratios[,"z_cr"],ratios[,"l_cr"])$estimate,3)
   plot(ratios[,"z_cr"]~ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
@@ -298,7 +298,7 @@ dev.off()
 
 
 #COMBINED to save space
-pdf("combined.pdf",height=5,width=5)
+pdf("./Results/combined.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]),c(ratios[,"z_cr"],ratios[,"l_cr"]))
   #myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
 
