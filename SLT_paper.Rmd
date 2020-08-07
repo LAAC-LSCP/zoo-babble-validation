@@ -163,7 +163,11 @@ mycf
 
 ```{r prec2}
 pdf("./Results/precision.pdf",height=10,width=10)
-prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
+colsums=colSums(conf_tab)
+my_conf_tab=conf_tab
+for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
+colSums(my_conf_tab)
+prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"pr"
 
