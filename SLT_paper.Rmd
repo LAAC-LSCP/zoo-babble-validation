@@ -37,8 +37,19 @@ dodiv=function(x) x/sum(x, na.rm=T)
 demo_data=read.csv("./Data/demo-data.tsv",sep="\t")
 
 # read dataset composed with python
-data_all <- read.csv("./Data/new_classifications_PU_zoon.csv")
+#data_ang <- read.csv("./Data/final_classifications_PU_zoon.csv")
+#data_td <- read.csv("./Data/final_class_september7.csv")
+#data_all<-rbind(data_ang, data_td)
 
+#read demo data created by AC from info in paper
+demo_data=read.csv("./Data/demo-data.tsv",sep="\t")
+# read dataset composed with python
+data_all <- read.csv("./Data/new_classifications_PU_zoon.csv")
+#remove the word mixed that takes up space and is unnecessary
+data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
+#relevel the factor so that it's easier to read
+data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=c("Canonical","Non-Canonical",
+                                  "Crying","Laughing","Junk",levels(data_all$Zoon_classif)[grep("_",levels(data_all$Zoon_classif))]))
 #remove the word mixed that takes up space and is unnecessary
 data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
 
@@ -92,7 +103,6 @@ colnames(prop_cat)[3]<-"pr"
 data.frame(conf_tab)->stall
 stall$id=paste(stall$Lab,stall$Zooniverse)
 stall=merge(stall,prop_cat[c("id","pr")])
-
 
 
 ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
@@ -175,8 +185,6 @@ data.frame(conf_tab)->stall
 stall$id=paste(stall$Lab,stall$Zooniverse)
 stall=merge(stall,prop_cat[c("id","pr")])
 
-
-
 ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(pr)), colour = "white") +
   geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=8) +
@@ -184,13 +192,38 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+theme(text = element_text(size=20),
+  ggtitle("Precision")+theme(text = element_text(size=10),
         axis.text.x = element_text(angle=90, hjust=1))
 dev.off()
 ```
+```{r recall2}
+colsums=colSums(conf_tab)
+pdf("./Results/precision_all.pdf",height=10,width=10)
+prop_cat=data.frame(conf_tab/colSums(conf_tab)*100)  #generates precision because columns
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"prec"
+
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","prec")])
+
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(prec)), colour = "white") +
+  geom_text(aes(label = paste(round(prec),"%")), vjust = -1,size=8) +
+  geom_text(aes(label = Freq), vjust = 1,size=8) +
+  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Precision")+theme(text = element_text(size=10),
+        axis.text.x = element_text(angle=90, hjust=1))
+
+
+dev.off()
+```
+
 
 ```{r recall2}
-pdf("./Results/recall.pdf",height=10,width=10)
+pdf("./Results/recall_all.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -206,7 +239,7 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+theme(text = element_text(size=20),
+  ggtitle("Recall")+theme(text = element_text(size=10),
         axis.text.x = element_text(angle=90, hjust=1))
 
 
@@ -217,7 +250,6 @@ dev.off()
 Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
 
 ```{r prepare data by child}
-
 
 #get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
 ztab=table(data_all$ChildID,data_all$Zoon_classif)
