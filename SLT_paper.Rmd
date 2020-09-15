@@ -20,6 +20,7 @@ library(dplyr)
 library(ggplot2)
 library(caret)
 library(scales)
+library(irrCAC) #https://cran.r-project.org/web/packages/irrCAC/vignettes/overview.html
 
 dodiv=function(x) x/sum(x, na.rm=T)
 
@@ -29,6 +30,8 @@ dodiv=function(x) x/sum(x, na.rm=T)
 ## History:
 
 - 2020-08-05 final first version
+- 2020-08-08 fixed error in precision (cols didn't add to 1)
+- 2020-08-11 added AC1 as alt to kappa
 
 ## Read data in
 
@@ -79,13 +82,22 @@ mycf
 
 ```
 
-### Precision
+### Precision 
 
 Precision means: If a segment was called X by zooniverse coders, what proportion of the time was it called X by lab coders?
 
+
+
+
+
 ```{r prec}
 
-prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
+
+colsums=colSums(conf_tab)
+my_conf_tab=conf_tab
+for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
+colSums(my_conf_tab)
+prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"pr"
 
@@ -99,46 +111,47 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(pr)), colour = "white") +
   geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
   geom_text(aes(label = Freq), vjust = 1,size=2) +
-  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  ggtitle("Precision")+theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, hjust=1))
+
 
 ```
 
-### Recall
-
+### recalll
 Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
 
 ```{r rec}
-prop_cat=data.frame(conf_tab/colSums(conf_tab)*100) #generates precision because columns
+
+prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"pr"
+colnames(prop_cat)[3]<-"rec"
 
 data.frame(conf_tab)->stall
 stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","pr")])
-
-
+stall=merge(stall,prop_cat[c("id","rec")])
 
 ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
-  geom_text(aes(label = Freq), vjust = 1,size=2) +
-  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+ geom_tile(aes(fill= rescale(rec)), colour = "white") +
+  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=8) +
+  geom_text(aes(label = Freq), vjust = 1,size=8) +
+  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
+  ggtitle("Recall")+theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, hjust=1))
 ```
 
 
-## repeat collapsing
+## Repeat collapsing mixed onto the relevant category
 
+Given results above, we map the mixed onto the corresponding key classes.
 
 ```{r}
 
-#given results above, we map the mixed
+#
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
@@ -158,6 +171,8 @@ conf_tab=mycf$table
 #Specificity=precision
 
 mycf
+
+gwet.ac1.table(conf_tab)
 
 ```
 
