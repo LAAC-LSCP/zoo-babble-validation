@@ -22,6 +22,7 @@ library(caret)
 library(scales)
 library(kableExtra)
 library(rel)
+library(ggpubr)
 dodiv=function(x) x/sum(x, na.rm=T)
 ```
 
@@ -41,6 +42,8 @@ dodiv=function(x) x/sum(x, na.rm=T)
 - README is old
 - a note said read demo data created by AC from info in paper - should be replaced with real demo data
 - add code to print out the results paragraphs
+- corage: - adjust margins and remove title repetition?
+- chunk-based analyses for age
 
 ## Read data in
 
@@ -73,7 +76,8 @@ data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
 
 ## Data post-processing
 
-We collected a total of 169,628 judgments provided for 33,880 500-ms chunks, corresponding to 11,984 LENA segments. Nearly a fifth of chunks did not have at least 3 labels in agreement out of the 5 Zooniverse labels (N = 6,585, 19% of all chunks). Of the chunks without a majority agreement, 4341  (66%) contained one or two Junk judgements (out of 5), 6523 (99,9%) had at least two matching judgements (the threshold used for lab-annotated segments), and only 61 (0,01%) had 5 different judgements. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the 81% of chunks that did have at least 3 labels in agreement; this represented 136,703 labels for 27,295 chunks, corresponding to 11,593 LENA segments. As the segments average 1.12 seconds in length, this means about 3.8 hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse). 
+We collected a total of 169,628 judgments provided for 33,880 500-ms chunks, corresponding to 11,984 LENA segments. Nearly a fifth of chunks did not have at least 3 labels in agreement out of the 5 Zooniverse labels (N = 6,585, 19% of all chunks). Of the chunks without a majority agreement, 4341 (66%) contained one or two Junk judgements (out of 5), 6523 (99,9%) had at least two matching judgements (the threshold used for lab-annotated segments), and only 61 (0,01%) had 5 different judgements. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the 81% of chunks that did have at least 3 labels in agreement; this represented 136,703 labels for 27,295 chunks, corresponding to 11,593 LENA segments. As the segments average 1.12 seconds in length, this means about 3.8 hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse). 
+
 
 
 ```{r}
@@ -105,95 +109,125 @@ data_all$Zoon_classif=factor(data_all$Zoon_classif)
 data_all$lab=factor(data_all$lab)
 sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
 
+table_zoon=round(table(data_all$Zoon)/sum(table(data_all$Zoon))*100)
+table_lab=round(table(data_all$lab)/sum(table(data_all$lab))*100)
 ```
 
 ```{r prepare data by child}
 #get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
 ztab=table(data_all$filename,data_all$Zoon_classif)
-z_lr=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
-z_cr=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
+z_lp=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
+z_cp=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
 ltab=table(data_all$filename,data_all$lab)
-l_lr=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
-l_cr=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
-#put all the ratios together
-if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) ratios=cbind(rownames(ztab),z_lr,z_cr,l_lr,l_cr) else print("oops this code needs to be more complex because we don't have the same kids for the two ratios")
-colnames(ratios)[1]<-"filename"
+l_lp=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
+l_cp=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
+#put all the proportions together
+if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) proportions=cbind(rownames(ztab),z_lp,z_cp,l_lp,l_cp) else print("oops this code needs to be more complex because we don't have the same kids for the two proportions")
+colnames(proportions)[1]<-"filename"
 
 #ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
 #improvement: now we merge with a demo data tab, but note this is merged with child id, so the problem of multiple recs per child is still there
 
-# Created demo_data with filenames. Use filenames instead of childIDs to merge ratios and demo data.
+# Created demo_data with filenames. Use filenames instead of childIDs to merge proportions and demo data.
 
-merge(ratios,demo_data_fn,by="filename")->ratios
-colnames(ratios)[dim(ratios)[2]]<-"Age"
+merge(proportions,demo_data_fn,by="filename")->proportions
+colnames(proportions)[dim(proportions)[2]]<-"Age"
 
-#cbinding results in text, so we numerize the ratios
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) ratios[,thisvar]=as.numeric(as.character(ratios[,thisvar]))
-summary(ratios)
+#cbinding results in text, so we numerize the proportions
+for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) proportions[,thisvar]=as.numeric(as.character(proportions[,thisvar]))
+summary(proportions)
 ```
 ## Results
 
 ### Descriptive analyses
 
-In this section, we provide descriptive analyses of our dataset. According to lab annotators, 16% of segments were canonical, 57% non-canonical, 2% laughing, and 5% crying, with the remaining 20% being categorized as "Don't code". Zooniverse data revealed a similar distribution: 15% canonical, 60% non-canonical, 4% laughing, 9% crying, 12% junk.
+In this section, we provide descriptive analyses of our dataset. According to lab annotators, `r table_lab["Canonical"]`% of segments were canonical, `r table_lab["Non-Canonical"]`% non-canonical, `r table_lab["Laughing"]`% laughing, and `r table_lab["Crying"]`% crying, with the remaining `r table_lab["Junk"]`% being categorized as "Don't code". Zooniverse data revealed a similar distribution:  `r table_zoon["Canonical"]`% canonical, `r table_zoon["Non-Canonical"]`% non-canonical, `r table_zoon["Laughing"]`% laughing, `r table_zoon["Crying"]`% crying, `r table_zoon["Junk"]`% junk.
 Next, we inspected the relationship between age and child-level derived metrics, of which we had two: i) Linguistic proportion = (“Canonical”+“Non-Canonical”)/“All vocalizations” (i.e., we remove junk), and ii) Canonical proportion = “Canonical”/(“Canonical”+“Non-Canonical”) (i.e. we remove junk + non-linguistic vocalizations). See Figure XX for results.
 
-Figure XX. Correlations between child-level descriptors and age as a function of metric (linguistic ratio in the top row, canonical ratio in the bottom row), annotation method 
+Figure XX. Correlations between child-level descriptors and age as a function of metric (linguistic ratio in the top row, canonical ratio in the bottom row), annotation method, and child group (Red as TD, and black as AS) 
 
-We first look generally at two measures that have been found to relate to age:
 
-- linguistic ratio = ("Canonical"+"Non-Canonical")/"All vocalizations" (i.e. we remove junk)
-- canonical ratio = "Canonical"/("Canonical"+"Non-Canonical") (i.e. we remove junk + non-linguistic vocalizations)
-
-TODO
-
-- make margins smaller
-- make the y axes use the same range, at least within metrics (i.e., linguistic ratio plots should both range from .4 to 1.0 so you can compare magnitudes of the actual data points)
-- remove title repetition (age only at the bottom)
 
 
 ```{r corage}
 
 prettynames=c("Linguistic Ratio (Zooniverse)","Canonical Ratio (Zooniverse)",
              "Linguistic Ratio (Lab)","Canonical Ratio (Lab)" )
-names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
+names(prettynames)<-c("z_lp","z_cp","l_lp","l_cp")
 mycols=c("black","red")
 names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
 mypch=c(4,20)
 names(mypch)<-c("Low-RiskControl","AngelmanSyndrome")
 
-jpeg("../Results/corage.jpg",width=20,height=20,units="cm",res=300)
-layout(matrix(c(1:4), 2, 2, byrow = F))
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
+lp_range=range(proportions[,c("z_lp","l_lp")])
+cp_range=range(proportions[,c("z_cp","l_cp")])
 
-  plot(ratios[,thisvar]~ratios$Age, pch=mypch[ratios$Diagnosis],xlab="Age (months)",ylab=prettynames[thisvar],
-       col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,thisvar]~ratios$Age,subset=c(ratios$Diagnosis=="AngelmanSyndrome")),col="black")
-  myr=paste0("r=",round(cor.test(ratios[ratios$Diagnosis=="AngelmanSyndrome",thisvar],ratios$Age[ratios$Diagnosis=="AngelmanSyndrome"])$estimate,3))
-  text(mean(ratios$Age[ratios$Diagnosis=="AngelmanSyndrome"]),mean(ratios[ratios$Diagnosis=="AngelmanSyndrome",thisvar]),myr,col="black")
-    abline(lm(ratios[,thisvar]~ratios$Age,subset=c(ratios$Diagnosis!="AngelmanSyndrome")),col="red")
-    myr=paste0("r=",round(cor.test(ratios[ratios$Diagnosis!="AngelmanSyndrome",thisvar],ratios$Age[ratios$Diagnosis!="AngelmanSyndrome"])$estimate,3))
-    text(mean(ratios$Age[ratios$Diagnosis!="AngelmanSyndrome"]),mean(ratios[ratios$Diagnosis!="AngelmanSyndrome",thisvar]),myr,col="red")
+#jpeg("../Results/corage.jpg",width=20,height=20,units="cm",res=300)
+layout(matrix(c(1:4), 2, 2, byrow = F))
+par(mar = c(4, 4, 1, 1))
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=4,ncol=2)
+rownames(myr)<-c("z_lp","z_cp","l_lp","l_cp")
+colnames(myr)<-c("AS","LR")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) {
+
+  if(thisvar %in% c("z_lp","l_lp")) myrange=lp_range else myrange=cp_range
+    
+  plot(proportions[,thisvar]~proportions$Age, pch=mypch[proportions$Diagnosis],xlab="Age (months)",ylab=prettynames[thisvar],
+       col=mycols[proportions$Diagnosis],
+         ylim=myrange)
+  abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar],proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"])
+    myr[thisvar,"AS"]=round(thiscor$estimate,3)
+    mylb[thisvar,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[thisvar,"AS"]=round(thiscor$conf.int[2],3)
+    myn[thisvar,"AS"]=round(thiscor$parameter,3)
+    myp[thisvar,"AS"]=round(thiscor$p.value,3)
+    
+    #add r to figure
+  text(mean(proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"]),mean(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar]),paste0("r=",myr[thisvar,"AS"]),col="black")
+
+  #repeat for LR  
+    abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis!="AngelmanSyndrome",thisvar],proportions$Age[proportions$Diagnosis!="AngelmanSyndrome"])
+    myr[thisvar,"LR"]=round(thiscor$estimate,3)
+    mylb[thisvar,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[thisvar,"LR"]=round(thiscor$conf.int[2],3)
+    myn[thisvar,"LR"]=round(thiscor$parameter,3)
+    myp[thisvar,"LR"]=round(thiscor$p.value,3)
+    
+    #add r to figure
+    
+    text(mean(proportions$Age[proportions$Diagnosis!="AngelmanSyndrome"]),mean(proportions[proportions$Diagnosis!="AngelmanSyndrome",thisvar]),paste0("r=",myr[thisvar,"LR"]),col="red")
 }
-dev.off()
+#dev.off()
 ```
 
-Descriptive analyses on the laboratory annotations showed that the Linguistic proportion increased non-significantly with age when all 20 children were considered together r(18) = .36, CI [-.09,.69], p=0.11; with a near-zero relationship among the older children diagnosed with Angelman Syndrome r(8) = .01, CI [-.62,.63], p=0.96]; and a significant association among than the younger low-risk control children r(8) = .74, CI [0.20,0.93], p=0.014. The Canonical proportion exhibited non-significant developmental decreases found among older children diagnosed with Angelman Syndrome r(8) = -.55, CI [-0.87,.11], p=0.09; and marginal developmental increases among low-risk control r(8) = .61, CI -.04 0.89, p=.06.
 
 
-Using the Zooniverse annotations, we found that the Linguistic proportion increased non-significantly with age when all 20 children were considered together r(18) = .38, CI [-.07,.70], p<0.1. As with laboratory annotations, the association with age was very weak for children diagnosed with Angelman Syndrome r(8) = -.10, CI [-.68,.56], p=.78, whereas younger low-risk control children showed a significant increase with age r(8) = .68, CI [0.08,0.91], p=0.03. Similarly, there were non-significant developmental decreases in the Canonical among children with Angelman Syndrome r(8) = -.41, CI [-.82,.28], p=.23; and marginal developmental increases among low-risk control children, r(8) = .60, CI [-.04,0.89], p=.07.
+
+Descriptive analyses on the laboratory annotations showed that correlations between the Linguistic proportion and age differed across the groups. There was a near-zero relationship among the older children diagnosed with Angelman Syndrome r(`r myn["l_lp","AS"]`) = `r myr["l_lp","AS"]`, CI [`r mylb["l_lp","AS"]`,`r myhb["l_lp","AS"]`], p=`r myp["l_lp","AS"]`]; and a significant association among younger low-risk control children r(`r myn["l_lp","LR"]`) = `r myr["l_lp","LR"]`, CI [`r mylb["l_lp","LR"]`,`r myhb["l_lp","LR"]`], p=`r myp["l_lp","LR"]`]. The Canonical proportion exhibited non-significant developmental decreases among older children diagnosed with Angelman Syndrome r(`r myn["l_cp","AS"]`) = `r myr["l_cp","AS"]`, CI [`r mylb["l_cp","AS"]`,`r myhb["l_cp","AS"]`], p=`r myp["l_cp","AS"]`]; and marginal developmental increases among low-risk control r(`r myn["l_cp","LR"]`) = `r myr["l_cp","LR"]`, CI [`r mylb["l_cp","LR"]`,`r myhb["l_cp","LR"]`], p=`r myp["l_cp","LR"]`].
 
 
-Given that these derived metrics are defined at the child level, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but deriving our proportions for the Zooniverse data not from the segment-level composite, but rather the individual chunk-level annotations. We found that the Linguistic proportion increased with age when all 20 children were considered together [r(18) = .41, -.30 .72, P=.07]. However, when each group was considered separately, Linguistic proportion was not strongly associated with showed a slight decrease with age in the Angelman Syndrome group [r(8) = -.04, CI -.6 .6, p=0.91], but increased with age an opposite pattern in the low-risk control group [r(8) = .71, CI .15 .92, p=.02]. Similarly, the Canonical proportion did not exhibit the same pattern across the groups, with developmental decreases found among children with Angelman Syndrome r(8) = -.35, CI -.80 .35, p=.32; and developmental increases among low-risk control r(8) = .57, CI -.08 0.88, p=.83.
+Using the Zooniverse annotations, we found that the association with age was very weak for children diagnosed with Angelman Syndrome r(`r myn["z_lp","AS"]`) = `r myr["z_lp","AS"]`, CI [`r mylb["z_lp","AS"]`,`r myhb["z_lp","AS"]`], p=`r myp["z_lp","AS"]`]; whereas younger low-risk control children showed a significant increase with age r(`r myn["z_lp","LR"]`) = `r myr["z_lp","LR"]`, CI [`r mylb["z_lp","LR"]`,`r myhb["z_lp","LR"]`], p=`r myp["z_lp","LR"]`]. Similarly, there were non-significant developmental decreases in the Canonical among children with Angelman Syndrome r(`r myn["z_cp","AS"]`) = `r myr["z_cp","AS"]`, CI [`r mylb["z_cp","AS"]`,`r myhb["z_cp","AS"]`], p=`r myp["z_cp","AS"]`]; and marginal developmental increases among low-risk control children, r(`r myn["z_cp","LR"]`) = `r myr["z_cp","LR"]`, CI [`r mylb["z_cp","LR"]`,`r myhb["z_cp","LR"]`], p=`r myp["z_cp","LR"]`].
+
+
+Given that these derived metrics are defined at the child level, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but deriving our proportions for the Zooniverse data not from the segment-level composite, but rather the individual chunk-level annotations. We found that the Linguistic proportion was not strongly associated with age in the Angelman Syndrome group [r(8) = -.04, CI -.6 .6, p=0.91], but increased with age  in the low-risk control group [r(8) = .71, CI .15 .92, p=.02]. Similarly, the Canonical proportion did not exhibit the same pattern across the groups, with developmental decreases found among children with Angelman Syndrome r(8) = -.35, CI -.80 .35, p=.32; and developmental increases among low-risk control r(8) = .57, CI -.08 0.88, p=.83.
+
 
 ## Main analyses
 
 Next, we discuss the correspondence between citizen science classifications and the laboratory gold standard, at the level of individual clips. Results were visualized and assessed with a confusion matrix. We report a Precision plot (Fig. 1) and a Recall plot (Fig. 2): the diagonal elements show the number of correct segment-level classifications for each class while the off-diagonal elements show non-matching classifications.
 
 ```{r}
-table(data_all$lab)
-table(data_all$Zoon_classif)
-gac(data = sample_data, kat = 5, weight = c("unweighted"),
+mygac=gac(data = sample_data, kat = 5, weight = c("unweighted"),
     conf.level = 0.95)
 
 mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
@@ -201,15 +235,16 @@ conf_tab=mycf$table
 # this package uses sensitivity & specificity
 #Sensitivity=recall
 #Specificity=precision
-mycf
+#mycf
 ```
 
 
 
-Precision means: If a segment was called X by zooniverse coders, what proportion of the time was it called X by lab coders?
 
 
-```{r prec}
+```{r figure-prec-rec}
+
+
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:dim(conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
@@ -220,7 +255,7 @@ colnames(prop_cat)[3]<-"pr"
 data.frame(conf_tab)->stall
 stall$id=paste(stall$Lab,stall$Zooniverse)
 stall=merge(stall,prop_cat[c("id","pr")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+prec_plot = ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(pr)), colour = "white") +
   geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
   geom_text(aes(label = Freq), vjust = 1,size=1) +
@@ -228,13 +263,8 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
   ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-```
 
-
-
-Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
-
-```{r rec}
+# repeat for recall
 rowsums=rowSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:dim(conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/rowsums[i]
@@ -245,7 +275,7 @@ colnames(prop_cat)[3]<-"rec"
 data.frame(conf_tab)->stall
 stall$id=paste(stall$Lab,stall$Zooniverse)
 stall=merge(stall,prop_cat[c("id","rec")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+rec_plot = ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(rec)), colour = "white") +
   geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=2) +
   geom_text(aes(label = Freq), vjust = 1,size=1) +
@@ -254,63 +284,140 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   xlab("Zooniverse") + ylab("Lab") +
   ggtitle("Recall")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+ggarrange(prec_plot, rec_plot, 
+          labels = c("A", "B"),
+          ncol = 2, nrow = 1)
+
 ```
 
 
-From both visualizations, it appears that performance is moderate to good, with an overall accuracy of 65% (95% CI = .64-.66), a kappa of .4, and a Gwet's AC1 coefficient of .67 (95% CI = .66,.69). 
-A closer look at the confusion matrix reveals that errors in the classification are not distributed randomly. The Non-Canonical label shows the highest agreement between Zooniverse and lab experts (Recall 79%), and it is worth noticing that a majority of segments in the dataset were assigned this classificationattributed this judgment. Junk and Canonical show a moderately good agreement (Recall 62% and 58% respectively), with other classes having more variable assignments (49% for Crying and 39% for Junk). 
+From both visualizations, it appears that performance is moderate to good, with an overall accuracy of `r round(mycf$overall["Accuracy"]*100)`%, CI = [`r round(mycf$overall["AccuracyLower"]*100)`,`r round(mycf$overall["AccuracyUpper"]*100)`], a kappa of `r round(mycf$overall["Kappa"],3)`, and a Gwet's AC1 coefficient of `r round(mygac$est,3)`, CI = [`r round(mygac$lb,3)`,`r round(mygac$ub,3)`]. 
 
 
 
 ### Child level descriptors
 
-Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
+TODO
 
+- fix size
+- point should be dependent on child group
 
+```{r corlab-zoo}
+
+layout(matrix(c(1:2), 1, 2, byrow = F))
+par(mar = c(4, 4, 1, 1))
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=2,ncol=3)
+rownames(myr)<-c("lp","cp")
+colnames(myr)<-c("AS","LR","all")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
+
+  plot(proportions[,"z_lp"]~proportions[,"l_lp"], pch=20,xlab=prettynames["l_lp"],ylab=prettynames["z_lp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$Diagnosis])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome","z_lp"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_lp"])
+    myr[1,"AS"]=round(thiscor$estimate,3)
+    mylb[1,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[1,"AS"]=round(thiscor$conf.int[2],3)
+    myn[1,"AS"]=round(thiscor$parameter,3)
+    myp[1,"AS"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+    abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis!="AngelmanSyndrome","l_lp"],proportions[proportions$Diagnosis!="AngelmanSyndrome","z_lp"])
+    myr[1,"LR"]=round(thiscor$estimate,3)
+    mylb[1,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[1,"LR"]=round(thiscor$conf.int[2],3)
+    myn[1,"LR"]=round(thiscor$parameter,3)
+    myp[1,"LR"]=round(thiscor$p.value,3)
+    
+#repeat for all cor
+    
+      thiscor=cor.test(proportions$z_lp,proportions$l_lp)
+    myr[1,"all"]=round(thiscor$estimate,3)
+    mylb[1,"all"]=round(thiscor$conf.int[1],3)
+    myhb[1,"all"]=round(thiscor$conf.int[2],3)
+    myn[1,"all"]=round(thiscor$parameter,3)
+    myp[1,"all"]=round(thiscor$p.value,3)
+    
+    # repeat whole for cp
+    
+    lims=range(c(proportions[,"z_cp"],proportions[,"l_cp"]))
+
+  plot(proportions[,"z_cp"]~proportions[,"l_cp"], pch=20,xlab=prettynames["l_cp"],ylab=prettynames["z_cp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$Diagnosis])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome","z_cp"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_cp"])
+    myr[2,"AS"]=round(thiscor$estimate,3)
+    mylb[2,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[2,"AS"]=round(thiscor$conf.int[2],3)
+    myn[2,"AS"]=round(thiscor$parameter,3)
+    myp[2,"AS"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+    abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis!="AngelmanSyndrome","l_cp"],proportions[proportions$Diagnosis!="AngelmanSyndrome","z_cp"])
+    myr[2,"LR"]=round(thiscor$estimate,3)
+    mylb[2,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[2,"LR"]=round(thiscor$conf.int[2],3)
+    myn[2,"LR"]=round(thiscor$parameter,3)
+    myp[2,"LR"]=round(thiscor$p.value,3)
+    
+#repeat for all cor
+    
+      thiscor=cor.test(proportions$z_cp,proportions$l_cp)
+    myr[2,"all"]=round(thiscor$estimate,3)
+    mylb[2,"all"]=round(thiscor$conf.int[1],3)
+    myhb[2,"all"]=round(thiscor$conf.int[2],3)
+    myn[2,"all"]=round(thiscor$parameter,3)
+    myp[2,"all"]=round(thiscor$p.value,3)
+```
 
 
 
 Although the classification at the clip level is only moderately accurate, what we are ultimately interested in is whether citizen scientists’ classifications are able to provide a reliable snapshot of childrens’ individual development. Looking at all 20 children together, we found a strong positive correlation (r (18) = 0.811, CI 0.58-0.92, p<0.001) between Linguistic proportion by child from the Zooniverse and the lab annotators' data. We notice a trend for Linguistic Proportions from Zooniverse data to be lower than that from laboratory data (see Fig. 3). When we split by participant group, correlations remain high [Angelman Syndrome r(8) = .88, CI .55-.97, p<0.001; low-risk control r(8) =.82, CI .4 - .96, p<0.01]. 
 
 Similarly, a strong positive correlation (r=0.937, 0.84 0.97, p<0.001) is found in the Canonical Proportion. Unlike the linguistic proportion, the error for Canonical Ratio is very small and does not suggest a systematic over- or under-estimation (see Fig. XX). When we split by participant group, correlations remain high although we do note they are somewhat smaller for the children with Angelman Syndrome, who are also older than the low-risk control children [Angelman Syndrome r(8) = .86, CI 0.5-.96, p<0.01; low-risk control r(8) = .96, CI 0.83-0.99, p<0.001].
+
 When we use chunk-level judgments to derive the our child-level metrics, we observe very similar levels of correlation: linguistic proportion overall r (18) = .84, CI .63 .93, p<0.001 [Angelman Syndrome r(8) = .82, CI .41 .95, p<0.01; low-risk control r(8) = .84, CI .44 0.96, p<0.01]; canonical proportion overall r (18) = .96, CI .90 .98, p<0.001 [Angelman Syndrome r(8) = .85, CI .49 .85, p<0.01; low-risk control r(8) = .97, CI .89 .99, p<0.001].
 
 
 
-TODO:
-
-- change figure generation to have lines fitted to each group
-
-```{r corlab-zoo}
-#Ling ratio
-pdf("../Results/ling_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
-  myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
-  plot(ratios[,"z_lr"]~ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]))
-  lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-  #CR
-pdf("../Results/can_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
-    myr=round(cor.test(ratios[,"z_cr"],ratios[,"l_cr"])$estimate,3)
-  plot(ratios[,"z_cr"]~ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]),col="darkgray")
-    lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-
-```
 
 
 
 ```{r regmod}
-lin_mod=lm(z_lr~l_lr*Diagnosis*Age,data=ratios)
+lin_mod=lm(z_lp~l_lp*Diagnosis*Age,data=proportions)
 summary(lin_mod)
 plot(lin_mod)
 ```
 
+## Additional analyses
+
+We additionally explored under what conditions Zooniverse judgments more closely aligned with laboratory judgments:
+
+- take all 5 Zoo judgments or 3 or 1 (may need to run the latter two a couple of times to check for potential variance -- if variance is small, we'll just say so, if it's large then we'll have to write a loop and report CIs)
+- look at whether kids who have a high "junk" proportion according to Zooniverse 
+     - lead to lower Zoo-PU correlations
+     - have lower levels of concordance across Zoo coders
+- look at what happens to TD Zoo-PU correlation when you undersample 100 vocs to 80 and 60 and to the same number of non-junk vocs as in AS
 
