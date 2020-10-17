@@ -1,7 +1,6 @@
 ---
-title: "SLT_paper"
-author: "AC"
-date: "2020-03-06 (substantive version), latest minor edits 2020-07-17"
+title: "Analyses for JSLHR version"
+date: "2020-10-17"
 output:
   pdf_document:
     toc: yes
@@ -21,6 +20,8 @@ library(dplyr)
 library(ggplot2)
 library(caret)
 library(scales)
+library(kableExtra)
+library(rel)
 dodiv=function(x) x/sum(x, na.rm=T)
 ```
 
@@ -28,16 +29,26 @@ dodiv=function(x) x/sum(x, na.rm=T)
 ## History:
 
 - 2020-08-05 final first version
+- 2020-10-10 (rehaul), 
+- latest minor edits 2020-10-17
+
+
+## TODO:
+
+- pipeline is still not transparent
+- there are duplicate files across raw and derived data
+- there are a bunch of files with similar names
+- README is old
+- a note said read demo data created by AC from info in paper - should be replaced with real demo data
 
 ## Read data in
 
 ```{r}
-#read demo data created by AC from info in paper
 # read datasets
 
-demo_data=read.csv("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Data/demo-data.tsv",sep="\t")
-data_ang <- read.csv("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Data/classifications_PU_zoon_final17.csv",header=T,sep=",")
-data_td <- read.csv("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Data/classifications_PU_zoon_final.csv")
+demo_data=read.csv("../Derived_Data/demo-data.tsv",sep="\t")
+data_ang <- read.csv("../Derived_Data/classifications_PU_zoon_final17.csv",header=T,sep=",")
+data_td <- read.csv("../Derived_Data/classifications_PU_zoon_final.csv")
 data_all<-rbind(data_ang, data_td)
 
 #add filenames to demo data
@@ -171,7 +182,7 @@ mycf
 ```
 
 ```{r prec2}
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/precision_final.pdf",height=10,width=10)
+pdf("../Results/precision_final.pdf",height=10,width=10)
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
@@ -195,7 +206,7 @@ dev.off()
 ```
 
 ```{r recall2}
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/recall_final.pdf",height=10,width=10)
+pdf("../Results/recall_final.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -224,7 +235,7 @@ conf_tab=mycf$table
 mycf
 ```
 ```{r prec2AS}
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/precision_AS.pdf",height=10,width=10)
+pdf("../Results/precision_AS.pdf",height=10,width=10)
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
@@ -248,8 +259,8 @@ dev.off()
 ```
 
 
-```{r recall2}
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/recall_AS.pdf",height=10,width=10)
+```{r recall2_AS}
+pdf("../Results/recall_AS.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -276,8 +287,8 @@ conf_tab=mycf$table
 mycf
 ```
 
-```{r prec2AS}
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/precision_TD.pdf",height=10,width=10)
+```{r prec3AS}
+pdf("../Results/precision_TD.pdf",height=10,width=10)
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
@@ -301,8 +312,8 @@ dev.off()
 ```
 
 
-```{r recall2}
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/recall_TD.pdf",height=10,width=10)
+```{r recall3}
+pdf("../Results/recall_TD.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -349,38 +360,59 @@ for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) ratios[,thisvar]=as.numeric(as.ch
 summary(ratios)
 ```
 
+
+## Correlations with age
+
 We first look generally at two measures that have been found to relate to age:
 
 - linguistic ratio = ("Canonical"+"Non-Canonical")/"All vocalizations" (i.e. we remove junk)
 - canonical ratio = "Canonical"/("Canonical"+"Non-Canonical") (i.e. we remove junk + non-linguistic vocalizations)
 
+TODO
 
-As expected, linguistic ratio goes up with age.
+- make margins smaller
 
-Surprisingly, canonical ratio goes DOWN with age.
+- remove title repetition (age only at the bottom)
+
 
 ```{r corage}
+
 prettynames=c("Linguistic Ratio (Zooniverse)","Canonical Ratio (Zooniverse)",
              "Linguistic Ratio (Lab)","Canonical Ratio (Lab)" )
 names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
-#!!! this is working the opposite than it should! but note that to get angsynd kids to come out in red, I have to do it like this -- it doesn't make sense...
-# Now it works alright
 mycols=c("black","red")
 names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
+mypch=c(4,20)
+names(mypch)<-c("Low-RiskControl","AngelmanSyndrome")
+
+jpeg("../Results/corage.jpg",width=20,height=20,units="cm",res=300)
+layout(matrix(c(1:4), 2, 2, byrow = F))
 for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
-  myr=round(cor.test(ratios[,thisvar],ratios$Age)$estimate,3)
-  plot(ratios[,thisvar]~ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr),
+
+  plot(ratios[,thisvar]~ratios$Age, pch=mypch[ratios$Diagnosis],xlab="Age (months)",ylab=prettynames[thisvar],
        col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,thisvar]~ratios$Age))
-  }
+  abline(lm(ratios[,thisvar]~ratios$Age,subset=c(ratios$Diagnosis=="AngelmanSyndrome")),col="black")
+  myr=paste0("r=",round(cor.test(ratios[ratios$Diagnosis=="AngelmanSyndrome",thisvar],ratios$Age[ratios$Diagnosis=="AngelmanSyndrome"])$estimate,3))
+  text(mean(ratios$Age[ratios$Diagnosis=="AngelmanSyndrome"]),mean(ratios[ratios$Diagnosis=="AngelmanSyndrome",thisvar]),myr,col="black")
+    abline(lm(ratios[,thisvar]~ratios$Age,subset=c(ratios$Diagnosis!="AngelmanSyndrome")),col="red")
+    myr=paste0("r=",round(cor.test(ratios[ratios$Diagnosis!="AngelmanSyndrome",thisvar],ratios$Age[ratios$Diagnosis!="AngelmanSyndrome"])$estimate,3))
+    text(mean(ratios$Age[ratios$Diagnosis!="AngelmanSyndrome"]),mean(ratios[ratios$Diagnosis!="AngelmanSyndrome",thisvar]),myr,col="red")
+}
+dev.off()
 ```
 
+## Correlations across zooniverse and lab
 
 But the key thing for us: Are Zooniverse annotations describing children similar to lab annotations? The answer is clearly yes.
 
+TODO:
+
+- add code to print out the results paragraphs
+- change figure generation to have lines fitted to each group
+
 ```{r corlab-zoo}
 #Ling ratio
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/ling_rat_z_vs_l_final.pdf",height=5,width=5)
+pdf("../Results/ling_rat_z_vs_l_final.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
   myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
   plot(ratios[,"z_lr"]~ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
@@ -390,7 +422,7 @@ lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
   #CR
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/can_rat_z_vs_l_final.pdf",height=5,width=5)
+pdf("../Results/can_rat_z_vs_l_final.pdf",height=5,width=5)
 lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
     myr=round(cor.test(ratios[,"z_cr"],ratios[,"l_cr"])$estimate,3)
   plot(ratios[,"z_cr"]~ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
@@ -399,21 +431,25 @@ lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
   abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]),col="darkgray")
     lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
-#COMBINED to save space
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/combined_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]),c(ratios[,"z_cr"],ratios[,"l_cr"]))
-  #myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
-  plot(ratios[,"z_lr"]~ratios[,"l_lr"],xlab="Laboratory annotations",ylab="Zooniverse annotations",
-       xlim=lims,ylim=lims,
-       pch=20,col=mycols[ratios$Diagnosis])
-    points(ratios[,"z_cr"]~ratios[,"l_cr"], pch=2, col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]))
-  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]),lty=3)
- # lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
+
 ```
 
-```{r corage}
+
+
+```{r regmod}
+lin_mod=lm(z_lr~l_lr*Diagnosis*Age,data=ratios)
+summary(lin_mod)
+plot(lin_mod)
+```
+
+## Code junkyard
+
+This is redundant code
+
+
+Different pdfs for diff groups
+
+```{r corage2, eval=F}
 prettynames=c("AS Linguistic Ratio (Zooniverse)","AS Canonical Ratio (Zooniverse)",
              "AS Linguistic Ratio (Lab)","AS Canonical Ratio (Lab)" )
 names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
@@ -428,7 +464,9 @@ for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
   }
 ```
 
-```{r corage}
+
+
+```{r corage3, eval=F}
 prettynames=c("TD Linguistic Ratio (Zooniverse)","TD Canonical Ratio (Zooniverse)",
              "TD Linguistic Ratio (Lab)","TD Canonical Ratio (Lab)" )
 for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
@@ -437,9 +475,12 @@ for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
   abline(lm(TD_ratios[,thisvar]~TD_ratios$Age))
   }
 ```
-```{r corlab-zoo}
+
+
+
+```{r corlab-zoo2, eval=F}
 #Ling ratio
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/td_ling_rat_z_vs_l_final.pdf",height=5,width=5)
+pdf("../Results/td_ling_rat_z_vs_l_final.pdf",height=5,width=5)
 lims=range(c(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"]))
   myr=round(cor.test(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"])$estimate,3)
   plot(TD_ratios[,"z_lr"]~TD_ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
@@ -449,7 +490,7 @@ lims=range(c(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"]))
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
   #CR
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/td_can_rat_z_vs_l_final.pdf",height=5,width=5)
+pdf("../Results/td_can_rat_z_vs_l_final.pdf",height=5,width=5)
 lims=range(c(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"]))
     myr=round(cor.test(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"])$estimate,3)
   plot(TD_ratios[,"z_cr"]~TD_ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
@@ -460,9 +501,9 @@ lims=range(c(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"]))
 dev.off()
 ```
 
-```{r corlab-zoo}
+```{r corlab-zoo3, eval=F}
 #Ling ratio
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/AS_ling_rat_z_vs_l_final.pdf",height=5,width=5)
+pdf("../Results/AS_ling_rat_z_vs_l_final.pdf",height=5,width=5)
 lims=range(c(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"]))
   myr=round(cor.test(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"])$estimate,3)
   plot(AS_ratios[,"z_lr"]~AS_ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
@@ -472,7 +513,7 @@ lims=range(c(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"]))
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
   #CR
-pdf("/Users/chiarasemenzin/Documents/GitHub/zoo-babble-validation/Results/AS_can_rat_z_vs_l_final.pdf",height=5,width=5)
+pdf("../Results/AS_can_rat_z_vs_l_final.pdf",height=5,width=5)
 lims=range(c(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"]))
     myr=round(cor.test(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"])$estimate,3)
   plot(AS_ratios[,"z_cr"]~AS_ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
@@ -482,7 +523,22 @@ lims=range(c(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"]))
     lines(c(0,1),c(0,1),lty=2,col="darkgray")
 dev.off()
 ```
-```{r}
-lin_mod=lm(z_lr~l_lr+Diagnosis,data=ratios)
-summary(lin_mod)
+
+
+combined pdf
+
+```{r , eval=F}
+#COMBINED to save space
+pdf("../Results/combined_final.pdf",height=5,width=5)
+lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]),c(ratios[,"z_cr"],ratios[,"l_cr"]))
+  #myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
+  plot(ratios[,"z_lr"]~ratios[,"l_lr"],xlab="Laboratory annotations",ylab="Zooniverse annotations",
+       xlim=lims,ylim=lims,
+       pch=20,col=mycols[ratios$Diagnosis])
+    points(ratios[,"z_cr"]~ratios[,"l_cr"], pch=2, col=mycols[ratios$Diagnosis])
+  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]))
+  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]),lty=3)
+ # lines(c(0,1),c(0,1),lty=2,col="darkgray")
+dev.off()
 ```
+
