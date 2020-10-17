@@ -40,6 +40,7 @@ dodiv=function(x) x/sum(x, na.rm=T)
 - there are a bunch of files with similar names
 - README is old
 - a note said read demo data created by AC from info in paper - should be replaced with real demo data
+- add code to print out the results paragraphs
 
 ## Read data in
 
@@ -70,81 +71,16 @@ data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
 ```
 
 
+## Data post-processing
 
-## Correspondence between lab & zooniverse annotation at the level of segments
-
-Here we look at to what extent zooniverse and lab annotations match at the level of individual segments. Each data point is one segment (one "vocalization").
-
-
-```{r}
-table(data_all$lab)
-table(data_all$Zoon_classif)
-mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
-conf_tab=mycf$table
-# this package uses sensitivity & specificity
-#Sensitivity=recall
-#Specificity=precision
-mycf
-```
-
-### Precision
-
-Precision means: If a segment was called X by zooniverse coders, what proportion of the time was it called X by lab coders?
-
-
-```{r prec}
-colsums=colSums(conf_tab)
-my_conf_tab=conf_tab
-for(i in 1:18) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
-colSums(my_conf_tab)
-prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"pr"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","pr")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
-  geom_text(aes(label = Freq), vjust = 1,size=1) +
-  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-```
-
-### Recall
-
-Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
-
-```{r rec}
-rowsums=rowSums(conf_tab)
-my_conf_tab=conf_tab
-for(i in 1:18) my_conf_tab[,i]=my_conf_tab[,i]/rowsums[i]
-rowSums(my_conf_tab)
-prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"rec"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","rec")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(rec)), colour = "white") +
-  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=2) +
-  geom_text(aes(label = Freq), vjust = 1,size=1) +
-  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-```
-
-
-## repeat collapsing
+We collected a total of 169,628 judgments provided for 33,880 500-ms chunks, corresponding to 11,984 LENA segments. Nearly a fifth of chunks did not have at least 3 labels in agreement out of the 5 Zooniverse labels (N = 6,585, 19% of all chunks). Of the chunks without a majority agreement, 4341  (66%) contained one or two Junk judgements (out of 5), 6523 (99,9%) had at least two matching judgements (the threshold used for lab-annotated segments), and only 61 (0,01%) had 5 different judgements. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the 81% of chunks that did have at least 3 labels in agreement; this represented 136,703 labels for 27,295 chunks, corresponding to 11,593 LENA segments. As the segments average 1.12 seconds in length, this means about 3.8 hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse). 
 
 
 ```{r}
-#given results above, we map the mixed
+# remove non-majority labels
+#TODO 
+
+# we map the mixed
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
 data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
@@ -164,177 +100,12 @@ data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical"]<-"Non-Canon
 data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical_Laughing"]<-"Non-Canonical" 
 data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing"]<-"Non-Canonical"
 
-```
-
-```{r}
 #and reset the factors for cleanliness
 data_all$Zoon_classif=factor(data_all$Zoon_classif)
 data_all$lab=factor(data_all$lab)
 sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
-gac(data = sample_data, kat = 5, weight = c("unweighted"),
-    conf.level = 0.95)
-mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
-conf_tab=mycf$table
-# this package uses sensitivity & specificity
-#Sensitivity=recall
-#Specificity=precision
-mycf
+
 ```
-
-```{r prec2}
-pdf("../Results/precision_final.pdf",height=10,width=10)
-colsums=colSums(conf_tab)
-my_conf_tab=conf_tab
-for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
-colSums(my_conf_tab)
-prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"pr"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","pr")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-```{r recall2}
-pdf("../Results/recall_final.pdf",height=10,width=10)
-prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"rec"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","rec")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(rec)), colour = "white") +
-  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-
-```{r}
-data_as_td<-left_join(data_all,demo_data,on="ChildID")
-# CM with just AS kids
-data_AS<-subset(data_as_td, Diagnosis=="AngelmanSyndrome")
-mycf=confusionMatrix(data_AS$lab, data_AS$Zoon_classif, dnn = c("Lab","Zooniverse"))
-conf_tab=mycf$table
-mycf
-```
-```{r prec2AS}
-pdf("../Results/precision_AS.pdf",height=10,width=10)
-colsums=colSums(conf_tab)
-my_conf_tab=conf_tab
-for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
-colSums(my_conf_tab)
-prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"pr"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","pr")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-
-```{r recall2_AS}
-pdf("../Results/recall_AS.pdf",height=10,width=10)
-prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"rec"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","rec")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(rec)), colour = "white") +
-  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-```{r}
-# CM with just TD kids
-data_TD<-subset(data_as_td, Diagnosis=="Low-RiskControl")
-mycf=confusionMatrix(data_TD$lab, data_TD$Zoon_classif, dnn = c("Lab","Zooniverse"))
-conf_tab=mycf$table
-mycf
-```
-
-```{r prec3AS}
-pdf("../Results/precision_TD.pdf",height=10,width=10)
-colsums=colSums(conf_tab)
-my_conf_tab=conf_tab
-for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
-colSums(my_conf_tab)
-prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"pr"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","pr")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-
-```{r recall3}
-pdf("../Results/recall_TD.pdf",height=10,width=10)
-prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"rec"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","rec")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(rec)), colour = "white") +
-  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-## Child level descriptors
-
-Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
 
 ```{r prepare data by child}
 #get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
@@ -355,13 +126,19 @@ colnames(ratios)[1]<-"filename"
 
 merge(ratios,demo_data_fn,by="filename")->ratios
 colnames(ratios)[dim(ratios)[2]]<-"Age"
+
 #cbinding results in text, so we numerize the ratios
 for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) ratios[,thisvar]=as.numeric(as.character(ratios[,thisvar]))
 summary(ratios)
 ```
+## Results
 
+### Descriptive analyses
 
-## Correlations with age
+In this section, we provide descriptive analyses of our dataset. According to lab annotators, 16% of segments were canonical, 57% non-canonical, 2% laughing, and 5% crying, with the remaining 20% being categorized as "Don't code". Zooniverse data revealed a similar distribution: 15% canonical, 60% non-canonical, 4% laughing, 9% crying, 12% junk.
+Next, we inspected the relationship between age and child-level derived metrics, of which we had two: i) Linguistic proportion = (“Canonical”+“Non-Canonical”)/“All vocalizations” (i.e., we remove junk), and ii) Canonical proportion = “Canonical”/(“Canonical”+“Non-Canonical”) (i.e. we remove junk + non-linguistic vocalizations). See Figure XX for results.
+
+Figure XX. Correlations between child-level descriptors and age as a function of metric (linguistic ratio in the top row, canonical ratio in the bottom row), annotation method 
 
 We first look generally at two measures that have been found to relate to age:
 
@@ -371,7 +148,7 @@ We first look generally at two measures that have been found to relate to age:
 TODO
 
 - make margins smaller
-
+- make the y axes use the same range, at least within metrics (i.e., linguistic ratio plots should both range from .4 to 1.0 so you can compare magnitudes of the actual data points)
 - remove title repetition (age only at the bottom)
 
 
@@ -401,13 +178,107 @@ for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
 dev.off()
 ```
 
-## Correlations across zooniverse and lab
+Descriptive analyses on the laboratory annotations showed that the Linguistic proportion increased non-significantly with age when all 20 children were considered together r(18) = .36, CI [-.09,.69], p=0.11; with a near-zero relationship among the older children diagnosed with Angelman Syndrome r(8) = .01, CI [-.62,.63], p=0.96]; and a significant association among than the younger low-risk control children r(8) = .74, CI [0.20,0.93], p=0.014. The Canonical proportion exhibited non-significant developmental decreases found among older children diagnosed with Angelman Syndrome r(8) = -.55, CI [-0.87,.11], p=0.09; and marginal developmental increases among low-risk control r(8) = .61, CI -.04 0.89, p=.06.
 
-But the key thing for us: Are Zooniverse annotations describing children similar to lab annotations? The answer is clearly yes.
+
+Using the Zooniverse annotations, we found that the Linguistic proportion increased non-significantly with age when all 20 children were considered together r(18) = .38, CI [-.07,.70], p<0.1. As with laboratory annotations, the association with age was very weak for children diagnosed with Angelman Syndrome r(8) = -.10, CI [-.68,.56], p=.78, whereas younger low-risk control children showed a significant increase with age r(8) = .68, CI [0.08,0.91], p=0.03. Similarly, there were non-significant developmental decreases in the Canonical among children with Angelman Syndrome r(8) = -.41, CI [-.82,.28], p=.23; and marginal developmental increases among low-risk control children, r(8) = .60, CI [-.04,0.89], p=.07.
+
+
+Given that these derived metrics are defined at the child level, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but deriving our proportions for the Zooniverse data not from the segment-level composite, but rather the individual chunk-level annotations. We found that the Linguistic proportion increased with age when all 20 children were considered together [r(18) = .41, -.30 .72, P=.07]. However, when each group was considered separately, Linguistic proportion was not strongly associated with showed a slight decrease with age in the Angelman Syndrome group [r(8) = -.04, CI -.6 .6, p=0.91], but increased with age an opposite pattern in the low-risk control group [r(8) = .71, CI .15 .92, p=.02]. Similarly, the Canonical proportion did not exhibit the same pattern across the groups, with developmental decreases found among children with Angelman Syndrome r(8) = -.35, CI -.80 .35, p=.32; and developmental increases among low-risk control r(8) = .57, CI -.08 0.88, p=.83.
+
+## Main analyses
+
+Next, we discuss the correspondence between citizen science classifications and the laboratory gold standard, at the level of individual clips. Results were visualized and assessed with a confusion matrix. We report a Precision plot (Fig. 1) and a Recall plot (Fig. 2): the diagonal elements show the number of correct segment-level classifications for each class while the off-diagonal elements show non-matching classifications.
+
+```{r}
+table(data_all$lab)
+table(data_all$Zoon_classif)
+gac(data = sample_data, kat = 5, weight = c("unweighted"),
+    conf.level = 0.95)
+
+mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
+conf_tab=mycf$table
+# this package uses sensitivity & specificity
+#Sensitivity=recall
+#Specificity=precision
+mycf
+```
+
+
+
+Precision means: If a segment was called X by zooniverse coders, what proportion of the time was it called X by lab coders?
+
+
+```{r prec}
+colsums=colSums(conf_tab)
+my_conf_tab=conf_tab
+for(i in 1:dim(conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
+colSums(my_conf_tab)
+prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"pr"
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","pr")])
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(pr)), colour = "white") +
+  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
+  geom_text(aes(label = Freq), vjust = 1,size=1) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+
+
+Recall means: If a segment was called X by lab coders, what proportion of the time was it called X by zooniverse coders?
+
+```{r rec}
+rowsums=rowSums(conf_tab)
+my_conf_tab=conf_tab
+for(i in 1:dim(conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/rowsums[i]
+rowSums(my_conf_tab)
+prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"rec"
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","rec")])
+ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(rec)), colour = "white") +
+  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=2) +
+  geom_text(aes(label = Freq), vjust = 1,size=1) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Recall")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+
+From both visualizations, it appears that performance is moderate to good, with an overall accuracy of 65% (95% CI = .64-.66), a kappa of .4, and a Gwet's AC1 coefficient of .67 (95% CI = .66,.69). 
+A closer look at the confusion matrix reveals that errors in the classification are not distributed randomly. The Non-Canonical label shows the highest agreement between Zooniverse and lab experts (Recall 79%), and it is worth noticing that a majority of segments in the dataset were assigned this classificationattributed this judgment. Junk and Canonical show a moderately good agreement (Recall 62% and 58% respectively), with other classes having more variable assignments (49% for Crying and 39% for Junk). 
+
+
+
+### Child level descriptors
+
+Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
+
+
+
+
+
+Although the classification at the clip level is only moderately accurate, what we are ultimately interested in is whether citizen scientists’ classifications are able to provide a reliable snapshot of childrens’ individual development. Looking at all 20 children together, we found a strong positive correlation (r (18) = 0.811, CI 0.58-0.92, p<0.001) between Linguistic proportion by child from the Zooniverse and the lab annotators' data. We notice a trend for Linguistic Proportions from Zooniverse data to be lower than that from laboratory data (see Fig. 3). When we split by participant group, correlations remain high [Angelman Syndrome r(8) = .88, CI .55-.97, p<0.001; low-risk control r(8) =.82, CI .4 - .96, p<0.01]. 
+
+Similarly, a strong positive correlation (r=0.937, 0.84 0.97, p<0.001) is found in the Canonical Proportion. Unlike the linguistic proportion, the error for Canonical Ratio is very small and does not suggest a systematic over- or under-estimation (see Fig. XX). When we split by participant group, correlations remain high although we do note they are somewhat smaller for the children with Angelman Syndrome, who are also older than the low-risk control children [Angelman Syndrome r(8) = .86, CI 0.5-.96, p<0.01; low-risk control r(8) = .96, CI 0.83-0.99, p<0.001].
+When we use chunk-level judgments to derive the our child-level metrics, we observe very similar levels of correlation: linguistic proportion overall r (18) = .84, CI .63 .93, p<0.001 [Angelman Syndrome r(8) = .82, CI .41 .95, p<0.01; low-risk control r(8) = .84, CI .44 0.96, p<0.01]; canonical proportion overall r (18) = .96, CI .90 .98, p<0.001 [Angelman Syndrome r(8) = .85, CI .49 .85, p<0.01; low-risk control r(8) = .97, CI .89 .99, p<0.001].
+
+
 
 TODO:
 
-- add code to print out the results paragraphs
 - change figure generation to have lines fitted to each group
 
 ```{r corlab-zoo}
@@ -442,103 +313,4 @@ summary(lin_mod)
 plot(lin_mod)
 ```
 
-## Code junkyard
-
-This is redundant code
-
-
-Different pdfs for diff groups
-
-```{r corage2, eval=F}
-prettynames=c("AS Linguistic Ratio (Zooniverse)","AS Canonical Ratio (Zooniverse)",
-             "AS Linguistic Ratio (Lab)","AS Canonical Ratio (Lab)" )
-names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
-
-AS_ratios<-subset(ratios, Diagnosis=="AngelmanSyndrome")
-TD_ratios<-subset(ratios, Diagnosis=="Low-RiskControl")
-
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
-  myr=round(cor.test(AS_ratios[,thisvar],AS_ratios$Age)$estimate,3)
-  plot(AS_ratios[,thisvar]~AS_ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr))
-  abline(lm(AS_ratios[,thisvar]~AS_ratios$Age))
-  }
-```
-
-
-
-```{r corage3, eval=F}
-prettynames=c("TD Linguistic Ratio (Zooniverse)","TD Canonical Ratio (Zooniverse)",
-             "TD Linguistic Ratio (Lab)","TD Canonical Ratio (Lab)" )
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
-  myr=round(cor.test(TD_ratios[,thisvar],TD_ratios$Age)$estimate,3)
-  plot(TD_ratios[,thisvar]~TD_ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr))
-  abline(lm(TD_ratios[,thisvar]~TD_ratios$Age))
-  }
-```
-
-
-
-```{r corlab-zoo2, eval=F}
-#Ling ratio
-pdf("../Results/td_ling_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"]))
-  myr=round(cor.test(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"])$estimate,3)
-  plot(TD_ratios[,"z_lr"]~TD_ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[TD_ratios$Diagnosis])
-  abline(lm(TD_ratios[,"z_lr"]~TD_ratios[,"l_lr"]))
-  lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-  #CR
-pdf("../Results/td_can_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"]))
-    myr=round(cor.test(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"])$estimate,3)
-  plot(TD_ratios[,"z_cr"]~TD_ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[TD_ratios$Diagnosis])
-  abline(lm(TD_ratios[,"z_cr"]~TD_ratios[,"l_cr"]),col="darkgray")
-    lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-```
-
-```{r corlab-zoo3, eval=F}
-#Ling ratio
-pdf("../Results/AS_ling_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"]))
-  myr=round(cor.test(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"])$estimate,3)
-  plot(AS_ratios[,"z_lr"]~AS_ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[AS_ratios$Diagnosis])
-  abline(lm(AS_ratios[,"z_lr"]~AS_ratios[,"l_lr"]))
-  lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-  #CR
-pdf("../Results/AS_can_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"]))
-    myr=round(cor.test(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"])$estimate,3)
-  plot(AS_ratios[,"z_cr"]~AS_ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[AS_ratios$Diagnosis])
-  abline(lm(AS_ratios[,"z_cr"]~AS_ratios[,"l_cr"]),col="darkgray")
-    lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-```
-
-
-combined pdf
-
-```{r , eval=F}
-#COMBINED to save space
-pdf("../Results/combined_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]),c(ratios[,"z_cr"],ratios[,"l_cr"]))
-  #myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
-  plot(ratios[,"z_lr"]~ratios[,"l_lr"],xlab="Laboratory annotations",ylab="Zooniverse annotations",
-       xlim=lims,ylim=lims,
-       pch=20,col=mycols[ratios$Diagnosis])
-    points(ratios[,"z_cr"]~ratios[,"l_cr"], pch=2, col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]))
-  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]),lty=3)
- # lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-```
 
