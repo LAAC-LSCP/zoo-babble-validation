@@ -23,7 +23,8 @@ library(scales)
 library(kableExtra)
 library(rel)
 library(ggpubr)
-dodiv=function(x) x/sum(x, na.rm=T)
+library(lme4)
+
 ```
 
 
@@ -50,15 +51,10 @@ dodiv=function(x) x/sum(x, na.rm=T)
 ```{r}
 # read datasets
 
-demo_data=read.csv("../Derived_Data/demo-data.tsv",sep="\t")
 data_ang <- read.csv("../Derived_Data/classifications_PU_zoon_final17.csv",header=T,sep=",")
 data_td <- read.csv("../Derived_Data/classifications_PU_zoon_final.csv")
 data_all<-rbind(data_ang, data_td)
 
-#add filenames to demo data
-demo_data_fn <- demo_data %>% 
-     left_join(select(data_all, filename, ChildID), by = c("ChildID"))
-demo_data_fn<-unique(demo_data_fn)
 
 #remove the word mixed that takes up space and is unnecessary
 data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
@@ -71,6 +67,27 @@ data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
 data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
 data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
 #apply same factor levels as zooniverse so that we can do symmetrical confusion matrices
+
+#add binomials for linguistic proportion
+data_all$lab_ling=ifelse(data_all$lab %in% c("Canonical","Non-Canonical"),1,0)
+data_all$zoo_ling=ifelse(data_all$Zoon_classif %in% c("Canonical","Non-Canonical"),1,0)
+data_all$lab_ling[data_all$lab=="Junk"]<-NA
+data_all$zoo_ling[data_all$lab=="Junk"]<-NA
+
+#add binomials for canonical proportion
+data_all$lab_can=data_all$zoo_can=NA
+data_all$lab_can[data_all$lab=="Canonical"]<-1
+data_all$lab_can[data_all$lab=="Non-Canonical"]<-0
+data_all$zoo_can[data_all$Zoon_classif=="Canonical"]<-1
+data_all$zoo_can[data_all$Zoon_classif=="Non-Canonical"]<-0
+
+
+demo_data=read.csv("../Derived_Data/demo-data.tsv",sep="\t")
+#add filenames to demo data, to be used later
+demo_data_fn <- demo_data %>% 
+     left_join(select(data_all, filename, ChildID), by = c("ChildID"))
+demo_data_fn<-unique(demo_data_fn)
+
 ```
 
 
@@ -114,15 +131,22 @@ table_lab=round(table(data_all$lab)/sum(table(data_all$lab))*100)
 ```
 
 ```{r prepare data by child}
+
 #get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
 ztab=table(data_all$filename,data_all$Zoon_classif)
 z_lp=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
 z_cp=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
+
 ltab=table(data_all$filename,data_all$lab)
 l_lp=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
 l_cp=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
+
+#and also get junk from zooniverse
+z_junk=ztab[,c("Junk")]/rowSums(ztab)
+
+  
 #put all the proportions together
-if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) proportions=cbind(rownames(ztab),z_lp,z_cp,l_lp,l_cp) else print("oops this code needs to be more complex because we don't have the same kids for the two proportions")
+if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) proportions=cbind(rownames(ztab),z_lp,z_cp,l_lp,l_cp,z_junk) else print("oops this code needs to be more complex because we don't have the same kids for the two proportions")
 colnames(proportions)[1]<-"filename"
 
 #ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
@@ -134,8 +158,14 @@ merge(proportions,demo_data_fn,by="filename")->proportions
 colnames(proportions)[dim(proportions)[2]]<-"Age"
 
 #cbinding results in text, so we numerize the proportions
-for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) proportions[,thisvar]=as.numeric(as.character(proportions[,thisvar]))
+for(thisvar in c("z_lp","z_cp","l_lp","l_cp","z_junk")) proportions[,thisvar]=as.numeric(as.character(proportions[,thisvar]))
+
+#add median junk
+proportions$median_junk<-ifelse(proportions$z_junk<median(proportions$z_junk),"lower_junk","higher_junk")
+
 summary(proportions)
+
+merge(data_all,proportions,all=T)->data_all
 ```
 ## Results
 
@@ -151,8 +181,8 @@ Figure XX. Correlations between child-level descriptors and age as a function of
 
 ```{r corage}
 
-prettynames=c("Linguistic Ratio (Zooniverse)","Canonical Ratio (Zooniverse)",
-             "Linguistic Ratio (Lab)","Canonical Ratio (Lab)" )
+prettynames=c("Linguistic Proportion (Zooniverse)","Canonical Proportion (Zooniverse)",
+             "Linguistic Proportion (Lab)","Canonical Proportion (Lab)" )
 names(prettynames)<-c("z_lp","z_cp","l_lp","l_cp")
 mycols=c("black","red")
 names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
@@ -297,10 +327,7 @@ From both visualizations, it appears that performance is moderate to good, with 
 
 ### Child level descriptors
 
-TODO
 
-- fix size
-- point should be dependent on child group
 
 ```{r corlab-zoo}
 
@@ -315,9 +342,9 @@ mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
 
 lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
 
-  plot(proportions[,"z_lp"]~proportions[,"l_lp"], pch=20,xlab=prettynames["l_lp"],ylab=prettynames["z_lp"],
+  plot(proportions[,"z_lp"]~proportions[,"l_lp"], xlab=prettynames["l_lp"],ylab=prettynames["z_lp"],
        xlim=lims,ylim=lims,
-       col=mycols[proportions$Diagnosis])
+       col=mycols[proportions$Diagnosis], pch=mypch[proportions$Diagnosis])
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 
   abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
@@ -355,9 +382,9 @@ lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
     
     lims=range(c(proportions[,"z_cp"],proportions[,"l_cp"]))
 
-  plot(proportions[,"z_cp"]~proportions[,"l_cp"], pch=20,xlab=prettynames["l_cp"],ylab=prettynames["z_cp"],
+  plot(proportions[,"z_cp"]~proportions[,"l_cp"], xlab=prettynames["l_cp"],ylab=prettynames["z_cp"],
        xlim=lims,ylim=lims,
-       col=mycols[proportions$Diagnosis])
+       col=mycols[proportions$Diagnosis], pch=mypch[proportions$Diagnosis])
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 
   abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
@@ -394,9 +421,9 @@ lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
 
 
 
-Although the classification at the clip level is only moderately accurate, what we are ultimately interested in is whether citizen scientists’ classifications are able to provide a reliable snapshot of childrens’ individual development. Looking at all 20 children together, we found a strong positive correlation (r (18) = 0.811, CI 0.58-0.92, p<0.001) between Linguistic proportion by child from the Zooniverse and the lab annotators' data. We notice a trend for Linguistic Proportions from Zooniverse data to be lower than that from laboratory data (see Fig. 3). When we split by participant group, correlations remain high [Angelman Syndrome r(8) = .88, CI .55-.97, p<0.001; low-risk control r(8) =.82, CI .4 - .96, p<0.01]. 
+Although the classification at the clip level is only moderately accurate, what we are ultimately interested in is whether citizen scientists’ classifications are able to provide a reliable snapshot of childrens’ individual development. Looking at all 20 children together, we found a strong positive correlation r(`r myn["lp","all"]`) = `r myr["lp","all"]`, CI [`r mylb["lp","all"]`,`r myhb["lp","all"]`], p=`r myp["lp","all"]`] between Linguistic proportion by child from the Zooniverse and the lab annotators' data.  When we split by participant group, correlations remain high: for Angelman Syndrome r(`r myn["lp","AS"]`) = `r myr["lp","AS"]`, CI [`r mylb["lp","AS"]`,`r myhb["lp","AS"]`], p=`r myp["lp","AS"]`]; low-risk control r(`r myn["lp","LR"]`) = `r myr["lp","LR"]`, CI [`r mylb["lp","LR"]`,`r myhb["lp","LR"]`], p=`r myp["lp","LR"]`]. 
 
-Similarly, a strong positive correlation (r=0.937, 0.84 0.97, p<0.001) is found in the Canonical Proportion. Unlike the linguistic proportion, the error for Canonical Ratio is very small and does not suggest a systematic over- or under-estimation (see Fig. XX). When we split by participant group, correlations remain high although we do note they are somewhat smaller for the children with Angelman Syndrome, who are also older than the low-risk control children [Angelman Syndrome r(8) = .86, CI 0.5-.96, p<0.01; low-risk control r(8) = .96, CI 0.83-0.99, p<0.001].
+Similarly, a strong positive correlation is found in the Canonical Proportion r(`r myn["cp","all"]`) = `r myr["cp","all"]`, CI [`r mylb["cp","all"]`,`r myhb["cp","all"]`], p=`r myp["cp","all"]`]. When we split by participant group, correlations remain high although we do note they are somewhat smaller for the older children with Angelman Syndrome: r(`r myn["cp","AS"]`) = `r myr["cp","AS"]`, CI [`r mylb["cp","AS"]`,`r myhb["cp","AS"]`], p=`r myp["cp","AS"]`]; than the low-risk control children r(`r myn["cp","LR"]`) = `r myr["cp","LR"]`, CI [`r mylb["cp","LR"]`,`r myhb["cp","LR"]`], p=`r myp["cp","LR"]`.
 
 When we use chunk-level judgments to derive the our child-level metrics, we observe very similar levels of correlation: linguistic proportion overall r (18) = .84, CI .63 .93, p<0.001 [Angelman Syndrome r(8) = .82, CI .41 .95, p<0.01; low-risk control r(8) = .84, CI .44 0.96, p<0.01]; canonical proportion overall r (18) = .96, CI .90 .98, p<0.001 [Angelman Syndrome r(8) = .85, CI .49 .85, p<0.01; low-risk control r(8) = .97, CI .89 .99, p<0.001].
 
@@ -405,19 +432,129 @@ When we use chunk-level judgments to derive the our child-level metrics, we obse
 
 
 
-```{r regmod}
-lin_mod=lm(z_lp~l_lp*Diagnosis*Age,data=proportions)
-summary(lin_mod)
-plot(lin_mod)
+```{r glmer-agediag}
+# one outlier in ling prop is removed
+
+ling_all=glmer(lab_ling~zoo_ling*Diagnosis*Age + (1|ChildID),data=data_all,family="binomial",subset=c(ChildID!="3681_1"))
+#plot(lin_mod)
+# doesn't converge
+
+ling_AS=glmer(lab_ling~zoo_ling*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis=="AngelmanSyndrome"))
+#only effect of zoo
+
+ling_LR=glmer(lab_ling~zoo_ling*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis!="AngelmanSyndrome" & ChildID!="3681_1"))
+#both main and interaction are sig
+
+
+can_all=glmer(lab_can~zoo_can*Diagnosis*Age + (1|ChildID),data=data_all,family="binomial")
+#doesn't converge either
+
+can_AS=glmer(lab_can~zoo_can*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis=="AngelmanSyndrome"))
+#only effect of zoo
+
+can_LR=glmer(lab_can~zoo_can*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis!="AngelmanSyndrome"))
+#both main and interaction are sig
+
 ```
 
 ## Additional analyses
 
-We additionally explored under what conditions Zooniverse judgments more closely aligned with laboratory judgments:
+We additionally explored under what conditions Zooniverse judgments more closely aligned with laboratory judgments. In previous work using a similar method, for instance, data from all three children from one dataset were often labeled as "Junk" (i.e., not a child's vocalization), and the data points from this corpus stood out when the authors attempted to integrate results with other corpora [@cychosz]. A high proportion of "Junk" may indicate that automated segmentation was errorful for those children, and may be a sign that the rest of the data could be compromised as well. 
+
+```{r prelim-junk}
+junkXdiag=t.test(proportions$z_junk ~ proportions$Diagnosis)
+
+```
+
+
+
+
+```{r cor-junk}
+
+mycols=c("blue","darkgreen")
+mypch=c(10,18)
+names(mycols)=names(mypch)=c("lower_junk","higher_junk")
+
+layout(matrix(c(1:2), 1, 2, byrow = F))
+par(mar = c(4, 4, 1, 1))
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=2,ncol=2)
+rownames(myr)<-c("lp","cp")
+colnames(myr)<-c("lower_junk","higher_junk")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
+
+  plot(proportions[,"z_lp"]~proportions[,"l_lp"], xlab=prettynames["l_lp"],ylab=prettynames["z_lp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$median_junk], pch=mypch[proportions$median_junk])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$median_junk=="lower_junk")),col="blue")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk=="lower_junk","z_lp"],proportions[proportions$median_junk=="lower_junk","l_lp"])
+    myr[1,"lower_junk"]=round(thiscor$estimate,3)
+    mylb[1,"lower_junk"]=round(thiscor$conf.int[1],3)
+    myhb[1,"lower_junk"]=round(thiscor$conf.int[2],3)
+    myn[1,"lower_junk"]=round(thiscor$parameter,3)
+    myp[1,"lower_junk"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+    abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$median_junk!="lower_junk")),col="darkgreen")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk!="lower_junk","l_lp"],proportions[proportions$median_junk!="lower_junk","z_lp"])
+    myr[1,"higher_junk"]=round(thiscor$estimate,3)
+    mylb[1,"higher_junk"]=round(thiscor$conf.int[1],3)
+    myhb[1,"higher_junk"]=round(thiscor$conf.int[2],3)
+    myn[1,"higher_junk"]=round(thiscor$parameter,3)
+    myp[1,"higher_junk"]=round(thiscor$p.value,3)
+    
+
+    
+    # repeat whole for cp
+    
+    lims=range(c(proportions[,"z_cp"],proportions[,"l_cp"]))
+
+  plot(proportions[,"z_cp"]~proportions[,"l_cp"], xlab=prettynames["l_cp"],ylab=prettynames["z_cp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$median_junk], pch=mypch[proportions$median_junk])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$median_junk=="lower_junk")),col="blue")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk=="lower_junk","z_cp"],proportions[proportions$median_junk=="lower_junk","l_cp"])
+    myr[2,"lower_junk"]=round(thiscor$estimate,3)
+    mylb[2,"lower_junk"]=round(thiscor$conf.int[1],3)
+    myhb[2,"lower_junk"]=round(thiscor$conf.int[2],3)
+    myn[2,"lower_junk"]=round(thiscor$parameter,3)
+    myp[2,"lower_junk"]=round(thiscor$p.value,3)
+    
+
+  #repeat for higher_junk  
+    abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$median_junk!="lower_junk")),col="darkgreen")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk!="lower_junk","l_cp"],proportions[proportions$median_junk!="lower_junk","z_cp"])
+    myr[2,"higher_junk"]=round(thiscor$estimate,3)
+    mylb[2,"higher_junk"]=round(thiscor$conf.int[1],3)
+    myhb[2,"higher_junk"]=round(thiscor$conf.int[2],3)
+    myn[2,"higher_junk"]=round(thiscor$parameter,3)
+    myp[2,"higher_junk"]=round(thiscor$p.value,3)
+    
+
+```
+
+We investigated this hypothesis by calculating the proportion of their data labeled as "Junk" for each individual child.  There was no significant difference in the proportions of their data labeled as "Junk" for older children with Angelman Syndrome (M = `r round(junkXdiag$estimate["mean in group AngelmanSyndrome"],3)`) compared to the younger low risk children (M = `r round(junkXdiag$estimate["mean in group Low-RiskControl"],3)`): Welch's t(`r junkXdiag$parameter`) = `r round(junkXdiag$statistic,3)`, p = `r round(junkXdiag$p.value,3)`. We therefore collapsed across groups for this exploratory analysis, and split the 20 children using a median split on the proportion of their data labeled as "Junk". Results were similar across these two post-hoc subgroups. For Linguistic Proportion, the correlation across lab and Zooniverse data for the lower junk group was r(`r myn["lp","lower_junk"]`) = `r myr["lp","lower_junk"]`, CI [`r mylb["lp","lower_junk"]`,`r myhb["lp","lower_junk"]`], p=`r myp["lp","lower_junk"]`]; and for the higher junk group it was r(`r myn["lp","higher_junk"]`) = `r myr["lp","higher_junk"]`, CI [`r mylb["lp","higher_junk"]`,`r myhb["lp","higher_junk"]`], p=`r myp["lp","higher_junk"]`. For Canonical Proportion, the correlation across lab and Zooniverse data for the lower junk group was r(`r myn["cp","lower_junk"]`) = `r myr["cp","lower_junk"]`, CI [`r mylb["cp","lower_junk"]`,`r myhb["cp","lower_junk"]`], p=`r myp["cp","lower_junk"]`]; and for the higher junk group it was r(`r myn["cp","higher_junk"]`) = `r myr["cp","higher_junk"]`, CI [`r mylb["cp","higher_junk"]`,`r myhb["cp","higher_junk"]`], p=`r myp["cp","higher_junk"]`. Thus, it does not seem that a higher proportion of "Junk" judgments is an index of low quality data.
+
+<!-- - look at whether kids who have a high "junk" proportion according to Zooniverse  -->
+<!--      - have lower levels of concordance across Zoo coders -->
+
 
 - take all 5 Zoo judgments or 3 or 1 (may need to run the latter two a couple of times to check for potential variance -- if variance is small, we'll just say so, if it's large then we'll have to write a loop and report CIs)
-- look at whether kids who have a high "junk" proportion according to Zooniverse 
-     - lead to lower Zoo-PU correlations
-     - have lower levels of concordance across Zoo coders
 - look at what happens to TD Zoo-PU correlation when you undersample 100 vocs to 80 and 60 and to the same number of non-junk vocs as in AS
 
