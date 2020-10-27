@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.11.29)  18 OCT 2020 06:57
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.11.29)  27 OCT 2020 10:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1136,148 +1136,200 @@ File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
 (Font)              Font shape `T1/lmtt/b/n' tried instead on input line 175.
-LaTeX Font Info:    Try loading font information for TS1+lmtt on input line 187
+LaTeX Font Info:    Try loading font information for TS1+lmtt on input line 182
 .
 (/usr/local/texlive/2017/texmf-dist/tex/latex/lm/ts1lmtt.fd
 File: ts1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 
-Package xcolor Warning: Incompatible color definition on input line 210.
+Package xcolor Warning: Incompatible color definition on input line 211.
 
 
-Package xcolor Warning: Incompatible color definition on input line 210.
+Package xcolor Warning: Incompatible color definition on input line 211.
 
 
-Package xcolor Warning: Incompatible color definition on input line 210.
+Package xcolor Warning: Incompatible color definition on input line 211.
 
 [1
 
 {/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 
-Package xcolor Warning: Incompatible color definition on input line 210.
+Package xcolor Warning: Incompatible color definition on input line 211.
 
 
-Package xcolor Warning: Incompatible color definition on input line 210.
+Package xcolor Warning: Incompatible color definition on input line 211.
 
 
-Package xcolor Warning: Incompatible color definition on input line 231.
+Package xcolor Warning: Incompatible color definition on input line 218.
 
 
-Package xcolor Warning: Incompatible color definition on input line 264.
+Package xcolor Warning: Incompatible color definition on input line 222.
 
 
-Package xcolor Warning: Incompatible color definition on input line 264.
+Package xcolor Warning: Incompatible color definition on input line 222.
 
 
-Package xcolor Warning: Incompatible color definition on input line 264.
+Package xcolor Warning: Incompatible color definition on input line 243.
+
+
+Package xcolor Warning: Incompatible color definition on input line 276.
+
+
+Package xcolor Warning: Incompatible color definition on input line 276.
+
+
+Overfull \vbox (1.82169pt too high) detected at line 276
+ []
+
+
+Package xcolor Warning: Incompatible color definition on input line 276.
 
 [2]
 
-Package xcolor Warning: Incompatible color definition on input line 264.
+Package xcolor Warning: Incompatible color definition on input line 276.
 
 
-Package xcolor Warning: Incompatible color definition on input line 264.
+Package xcolor Warning: Incompatible color definition on input line 276.
 
 
-Package xcolor Warning: Incompatible color definition on input line 266.
+Package xcolor Warning: Incompatible color definition on input line 278.
 
 
-Package xcolor Warning: Incompatible color definition on input line 301.
+Package xcolor Warning: Incompatible color definition on input line 313.
 
 
-Package xcolor Warning: Incompatible color definition on input line 301.
+Package xcolor Warning: Incompatible color definition on input line 313.
+
+
+Underfull \vbox (badness 10000) detected at line 313
+ []
+
+
+Overfull \vbox (0.39722pt too high) detected at line 313
+ []
+
+
+Package xcolor Warning: Incompatible color definition on input line 313.
 
 [3]
 
-Package xcolor Warning: Incompatible color definition on input line 330.
+Package xcolor Warning: Incompatible color definition on input line 313.
 
 
-Package xcolor Warning: Incompatible color definition on input line 334.
+Package xcolor Warning: Incompatible color definition on input line 313.
 
 
-Package xcolor Warning: Incompatible color definition on input line 334.
+Package xcolor Warning: Incompatible color definition on input line 342.
 
 
-Package xcolor Warning: Incompatible color definition on input line 359.
+Package xcolor Warning: Incompatible color definition on input line 346.
 
 
-Package xcolor Warning: Incompatible color definition on input line 418.
+Package xcolor Warning: Incompatible color definition on input line 346.
 
 
-Package xcolor Warning: Incompatible color definition on input line 418.
+Package xcolor Warning: Incompatible color definition on input line 371.
 
 
-Package xcolor Warning: Incompatible color definition on input line 418.
+Package xcolor Warning: Incompatible color definition on input line 430.
+
+
+Package xcolor Warning: Incompatible color definition on input line 430.
+
+
+Overfull \vbox (0.12393pt too high) detected at line 430
+ []
+
+
+Package xcolor Warning: Incompatible color definition on input line 430.
 
 [4]
 
-Package xcolor Warning: Incompatible color definition on input line 418.
+Package xcolor Warning: Incompatible color definition on input line 430.
 
 
-Package xcolor Warning: Incompatible color definition on input line 418.
+Package xcolor Warning: Incompatible color definition on input line 430.
 
 <analyses_files/figure-latex/corage-1.pdf, id=84, 854.19125pt x 567.11874pt>
 File: analyses_files/figure-latex/corage-1.pdf Graphic file (type pdf)
 <use analyses_files/figure-latex/corage-1.pdf>
 Package pdftex.def Info: analyses_files/figure-latex/corage-1.pdf used on input
- line 420.
+ line 432.
 (pdftex.def)             Requested size: 469.75452pt x 311.88165pt.
 
-Package xcolor Warning: Incompatible color definition on input line 422.
+Package xcolor Warning: Incompatible color definition on input line 434.
 
 [5]
 
-Package xcolor Warning: Incompatible color definition on input line 426.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
 
-Package xcolor Warning: Incompatible color definition on input line 426.
+Package xcolor Warning: Incompatible color definition on input line 438.
 
-[6 <./analyses_files/figure-latex/corage-1.pdf>]
+
+Package xcolor Warning: Incompatible color definition on input line 461.
+
 
 Package xcolor Warning: Incompatible color definition on input line 475.
 
 
-Package xcolor Warning: Incompatible color definition on input line 487.
+Package xcolor Warning: Incompatible color definition on input line 475.
+
+[6 <./analyses_files/figure-latex/corage-1.pdf>]
+
+Package xcolor Warning: Incompatible color definition on input line 482.
 
 
-Package xcolor Warning: Incompatible color definition on input line 487.
+Package xcolor Warning: Incompatible color definition on input line 486.
 
 
-Package xcolor Warning: Incompatible color definition on input line 489.
+Package xcolor Warning: Incompatible color definition on input line 486.
 
 
-Package xcolor Warning: Incompatible color definition on input line 496.
+Package xcolor Warning: Incompatible color definition on input line 493.
 
 
-Package xcolor Warning: Incompatible color definition on input line 496.
+Package xcolor Warning: Incompatible color definition on input line 506.
 
 
-Package xcolor Warning: Incompatible color definition on input line 503.
+Package xcolor Warning: Incompatible color definition on input line 506.
 
 
-Package xcolor Warning: Incompatible color definition on input line 526.
+Package xcolor Warning: Incompatible color definition on input line 535.
 
 
-Package xcolor Warning: Incompatible color definition on input line 526.
+Package xcolor Warning: Incompatible color definition on input line 547.
 
 
-Package xcolor Warning: Incompatible color definition on input line 533.
+Package xcolor Warning: Incompatible color definition on input line 547.
 
 
-Package xcolor Warning: Incompatible color definition on input line 554.
+Package xcolor Warning: Incompatible color definition on input line 549.
 
 
-Package xcolor Warning: Incompatible color definition on input line 554.
+Package xcolor Warning: Incompatible color definition on input line 556.
 
 
-Package xcolor Warning: Incompatible color definition on input line 554.
+Package xcolor Warning: Incompatible color definition on input line 556.
+
+
+Package xcolor Warning: Incompatible color definition on input line 563.
 
 [7]
 
-Package xcolor Warning: Incompatible color definition on input line 554.
+Package xcolor Warning: Incompatible color definition on input line 586.
 
 
-Package xcolor Warning: Incompatible color definition on input line 554.
+Package xcolor Warning: Incompatible color definition on input line 586.
+
+
+Package xcolor Warning: Incompatible color definition on input line 593.
+
+
+Package xcolor Warning: Incompatible color definition on input line 614.
+
+
+Package xcolor Warning: Incompatible color definition on input line 614.
 
 
 <analyses_files/figure-latex/figure-prec-rec-1.pdf, id=106, 857.2025pt x 567.11
@@ -1286,159 +1338,180 @@ File: analyses_files/figure-latex/figure-prec-rec-1.pdf Graphic file (type pdf)
 
 <use analyses_files/figure-latex/figure-prec-rec-1.pdf>
 Package pdftex.def Info: analyses_files/figure-latex/figure-prec-rec-1.pdf used
- on input line 556.
+ on input line 616.
 (pdftex.def)             Requested size: 469.74937pt x 310.78265pt.
+[8]
 
-Package xcolor Warning: Incompatible color definition on input line 565.
-
-
-Package xcolor Warning: Incompatible color definition on input line 637.
+Package xcolor Warning: Incompatible color definition on input line 625.
 
 
-Package xcolor Warning: Incompatible color definition on input line 637.
+Package xcolor Warning: Incompatible color definition on input line 697.
 
 
-Package xcolor Warning: Incompatible color definition on input line 637.
-
-[8 <./analyses_files/figure-latex/figure-prec-rec-1.pdf>]
-
-Package xcolor Warning: Incompatible color definition on input line 637.
+Package xcolor Warning: Incompatible color definition on input line 697.
 
 
-Package xcolor Warning: Incompatible color definition on input line 637.
+Package xcolor Warning: Incompatible color definition on input line 697.
+
+[9 <./analyses_files/figure-latex/figure-prec-rec-1.pdf>]
+
+Package xcolor Warning: Incompatible color definition on input line 697.
 
 
-Underfull \vbox (badness 10000) detected at line 637
- []
-
-
-Underfull \vbox (badness 10000) detected at line 637
- []
-
-
-Package xcolor Warning: Incompatible color definition on input line 637.
-
-[9]
-
-Package xcolor Warning: Incompatible color definition on input line 637.
-
-
-Package xcolor Warning: Incompatible color definition on input line 637.
+Package xcolor Warning: Incompatible color definition on input line 697.
 
 <analyses_files/figure-latex/corlab-zoo-1.pdf, id=124, 851.18pt x 564.1075pt>
 File: analyses_files/figure-latex/corlab-zoo-1.pdf Graphic file (type pdf)
 <use analyses_files/figure-latex/corlab-zoo-1.pdf>
 Package pdftex.def Info: analyses_files/figure-latex/corlab-zoo-1.pdf used on i
-nput line 639.
+nput line 699.
 (pdftex.def)             Requested size: 469.76094pt x 311.32741pt.
 
-Package xcolor Warning: Incompatible color definition on input line 641.
+Package xcolor Warning: Incompatible color definition on input line 701.
+
+[10]
+
+Package xcolor Warning: Incompatible color definition on input line 720.
 
 
-Package xcolor Warning: Incompatible color definition on input line 660.
+Package xcolor Warning: Incompatible color definition on input line 720.
 
 
-Package xcolor Warning: Incompatible color definition on input line 660.
+Package xcolor Warning: Incompatible color definition on input line 740.
 
-[10 <./analyses_files/figure-latex/corlab-zoo-1.pdf>]
+[11 <./analyses_files/figure-latex/corlab-zoo-1.pdf>]
 
-Package xcolor Warning: Incompatible color definition on input line 689.
-
-
-Package xcolor Warning: Incompatible color definition on input line 695.
+Package xcolor Warning: Incompatible color definition on input line 809.
 
 
-Package xcolor Warning: Incompatible color definition on input line 695.
+Package xcolor Warning: Incompatible color definition on input line 809.
 
 
-Package xcolor Warning: Incompatible color definition on input line 702.
-
-
-Package xcolor Warning: Incompatible color definition on input line 716.
-
-
-Package xcolor Warning: Incompatible color definition on input line 716.
-
-
-Package xcolor Warning: Incompatible color definition on input line 723.
-
-
-Package xcolor Warning: Incompatible color definition on input line 733.
-
-
-Package xcolor Warning: Incompatible color definition on input line 733.
-
-
-Package xcolor Warning: Incompatible color definition on input line 748.
-
-[11]
-
-Package xcolor Warning: Incompatible color definition on input line 752.
-
-
-Package xcolor Warning: Incompatible color definition on input line 752.
-
-
-Package xcolor Warning: Incompatible color definition on input line 754.
-
-
-Package xcolor Warning: Incompatible color definition on input line 823.
-
-
-Package xcolor Warning: Incompatible color definition on input line 823.
-
-
-Underfull \vbox (badness 10000) detected at line 823
+Underfull \vbox (badness 10000) detected at line 809
  []
 
 
-Overfull \vbox (1.90346pt too high) detected at line 823
+Underfull \vbox (badness 10000) detected at line 809
  []
 
 
-Package xcolor Warning: Incompatible color definition on input line 823.
+Package xcolor Warning: Incompatible color definition on input line 809.
 
 [12]
 
-Package xcolor Warning: Incompatible color definition on input line 823.
+Package xcolor Warning: Incompatible color definition on input line 809.
 
 
-Package xcolor Warning: Incompatible color definition on input line 823.
+Package xcolor Warning: Incompatible color definition on input line 809.
 
-<analyses_files/figure-latex/cor-junk-1.pdf, id=145, 851.18pt x 564.1075pt>
+
+Package xcolor Warning: Incompatible color definition on input line 822.
+
+
+Package xcolor Warning: Incompatible color definition on input line 828.
+
+
+Package xcolor Warning: Incompatible color definition on input line 828.
+
+
+Package xcolor Warning: Incompatible color definition on input line 835.
+
+
+Package xcolor Warning: Incompatible color definition on input line 849.
+
+
+Package xcolor Warning: Incompatible color definition on input line 849.
+
+
+Package xcolor Warning: Incompatible color definition on input line 856.
+
+
+Package xcolor Warning: Incompatible color definition on input line 866.
+
+
+Package xcolor Warning: Incompatible color definition on input line 866.
+
+[13]
+
+Package xcolor Warning: Incompatible color definition on input line 881.
+
+
+Package xcolor Warning: Incompatible color definition on input line 885.
+
+
+Package xcolor Warning: Incompatible color definition on input line 885.
+
+
+Package xcolor Warning: Incompatible color definition on input line 887.
+
+
+Package xcolor Warning: Incompatible color definition on input line 956.
+
+
+Package xcolor Warning: Incompatible color definition on input line 956.
+
+
+Underfull \vbox (badness 7116) detected at line 956
+ []
+
+
+Package xcolor Warning: Incompatible color definition on input line 956.
+
+[14]
+
+Package xcolor Warning: Incompatible color definition on input line 956.
+
+
+Package xcolor Warning: Incompatible color definition on input line 956.
+
+<analyses_files/figure-latex/cor-junk-1.pdf, id=155, 851.18pt x 564.1075pt>
 File: analyses_files/figure-latex/cor-junk-1.pdf Graphic file (type pdf)
 <use analyses_files/figure-latex/cor-junk-1.pdf>
 Package pdftex.def Info: analyses_files/figure-latex/cor-junk-1.pdf used on inp
-ut line 825.
+ut line 958.
 (pdftex.def)             Requested size: 469.76094pt x 311.32741pt.
 
-Package xcolor Warning: Incompatible color definition on input line 827.
+Package xcolor Warning: Incompatible color definition on input line 960.
 
 
-Package xcolor Warning: Incompatible color definition on input line 837.
+Package xcolor Warning: Incompatible color definition on input line 970.
 
 
-Package xcolor Warning: Incompatible color definition on input line 837.
+Package xcolor Warning: Incompatible color definition on input line 970.
 
-[13 <./analyses_files/figure-latex/cor-junk-1.pdf>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 867.
-[14]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 867.
+
+Overfull \vbox (0.33235pt too high) detected at line 970
+ []
+
+
+Package xcolor Warning: Incompatible color definition on input line 970.
+
+[15 <./analyses_files/figure-latex/cor-junk-1.pdf>]
+
+Package xcolor Warning: Incompatible color definition on input line 970.
+
+
+Package xcolor Warning: Incompatible color definition on input line 970.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1002.
+[16]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1002.
 (./analyses.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 867.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 867.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1002.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1002.
+
 Package rerunfilecheck Info: File `analyses.out' has not changed.
 (rerunfilecheck)             Checksum: 747D8C4E89783DAF2FA76BE8CB3AE52C;1076.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 867.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1002.
  ) 
 Here is how much of TeX's memory you used:
- 14797 strings out of 492995
- 213542 string characters out of 6132703
- 341595 words of memory out of 5000000
- 17999 multiletter control sequences out of 15000+600000
- 54320 words of font info for 91 fonts, out of 8000000 for 9000
+ 14806 strings out of 492995
+ 213639 string characters out of 6132703
+ 338403 words of memory out of 5000000
+ 18000 multiletter control sequences out of 15000+600000
+ 54569 words of font info for 94 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 34i,5n,38p,646b,457s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 34i,6n,38p,646b,455s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
 texlive/2017/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}</usr/local/texlive/2017/
 texmf-dist/fonts/type1/public/lm/lmbx10.pfb></usr/local/texlive/2017/texmf-dist
@@ -1448,10 +1521,10 @@ m/lmr12.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/lm/lmr17.pfb
 ></usr/local/texlive/2017/texmf-dist/fonts/type1/public/lm/lmtk10.pfb></usr/loc
 al/texlive/2017/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/local/texlive
 /2017/texmf-dist/fonts/type1/public/lm/lmtti10.pfb>
-Output written on analyses.pdf (14 pages, 265202 bytes).
+Output written on analyses.pdf (16 pages, 269489 bytes).
 PDF statistics:
- 204 PDF objects out of 1000 (max. 8388607)
- 166 compressed objects within 2 object streams
- 34 named destinations out of 1000 (max. 500000)
+ 212 PDF objects out of 1000 (max. 8388607)
+ 172 compressed objects within 2 object streams
+ 36 named destinations out of 1000 (max. 500000)
  10333 words of extra memory for PDF output out of 12000 (max. 10000000)
 
