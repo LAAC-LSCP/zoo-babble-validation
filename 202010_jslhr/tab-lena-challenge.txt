@@ -1,0 +1,9 @@
+	Recall			Label frequency	
+	C2019B	LENA	Zoon.	C2019B	Lab
+Crying	70.6	78.0	49.0	669	581
+Laughing	41.5	12.0	56.0	149	137
+Non-can.	24.1	73.0	77.0	4485	5512
+Canonical	66.4		59.0	1426	1715
+Junk	67.3	1.0	44.0	4575	2169
+UAR	54.0	41.0	57.0		
+WAR	49.9	57.0	65.0		

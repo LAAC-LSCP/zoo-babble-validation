@@ -1,0 +1,979 @@
+---
+title: "Describing vocalizations in young children: A big data approach through citizen science annotations"
+shorttitle        : "Children's vocalizations and citizen science"
+
+author: 
+  - name          : "Chiara Semenzin"
+    affiliation   : "1"
+    corresponding : no
+  - name          : "Lisa Hamrick"
+    affiliation   : "2"
+    corresponding : no
+  - name          : "Amanda Seidl"
+    affiliation   : "2"
+    corresponding : no
+  - name          : "Bridgette Kelleher"
+    affiliation   : "2"
+    corresponding : no
+  - name          : "Alejandrina Cristia"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "29 rue d'Ulm, 75005, Paris, France"
+    email         : "alecristia@gmail.com"
+
+affiliation:
+  - id            : "1"
+    institution   : "Laboratoire de Sciences Cognitives et de Psycholinguistique, Département d'Etudes cognitives, ENS, EHESS, CNRS, PSL University"
+  - id            : "2"
+    institution   : "Purdue University"    
+    
+author_note: >
+       AC acknowledges Agence Nationale de la Recherche (ANR-17-CE28-0007 LangAge, ANR-16-DATA-0004 ACLEW, ANR-14-CE30-0003 MechELex, ANR-17-EURE-0017); and the J. S. McDonnell Foundation Understanding Human Cognition Scholar Award. LH acknowledges the National Institute of Deafness and Other Communication Disorders (F31DC018219). BK acknowledges the National Institute of Mental Health (K23MH111955) and the Kinley Trust. The funders had no impact on this study.  All authors approved the final manuscript as submitted and agree to be accountable for all aspects of the work and have no conflict of interests to disclose.
+       
+# Abbreviations LENA^TM^: Language Environment Analysis.
+# ASHA recommends that abstracts be 150–250 words. The size limit for what can be included in your submission is set above 300 words,
+#currently 259 words
+
+abstract: >
+  **Purpose:** Recording young children's vocalizations through wearables is a promising method. However, accurately and rapidly annotating these files remains challenging. Online crowdsourcing with the collaboration of citizen scientists could be a feasible solution. In this paper, we assess the extent to which citizen scientists' annotations align with those gathered in the lab for recordings collected from young children. 
+  \newline
+  
+  
+  **Method:** Segments identified by LENA^TM^ as produced by the key child were extracted from one daylong recording for each of 20 participants: 10  low-risk control children and 10 children diagnosed  with  Angelman  syndrome, a  neurogenetic  syndrome  characterized  by  severe  language  impairments. Speech samples were annotated by trained annotators in the laboratory as well as by citizen scientists on Zooniverse. All annotators assigned one of five labels to each sample: Canonical, Non-Canonical, Crying, Laughing, and Junk. This allowed the derivation of two child-level vocalization metrics: the Linguistic Proportion, and the Canonical Proportion.
+
+  \newline
+ 
+  
+  **Results:** At the segment level, Zooniverse classifications had moderate precision and recall. More importantly, the Linguistic Proportion and the Canonical Proportion derived from Zooniverse annotations were highly correlated with those derived from laboratory annotations.
+
+  \newline
+ 
+  
+  **Conclusion:** Annotations obtained through a citizen science platform can help us overcome challenges posed by the process of annotating daylong speech recordings. Particularly when used in composites or derived metrics, such annotations can be used to investigate early markers of language delays in non-typically developing children.
+ 
+  
+# type: speech; areas of interest: assessment, infants, meta-analyses, prevention, speech recognition, screening, language, early intervention, cultural and ling diversity, dev lang disorders, autism, bilingualism --> choose 5: infants, prevention, dev lang disorders, early interv, diagnostics
+# Clinical practice research that evaluates methods of prevention, screening, diagnosis, treatment or models of service delivery that may improve the function and quality of life for individuals with or at risk of developing disorders of speech, language, cognition, swallowing, audition, and/or balance.
+# #up to 3 keywords
+# keywords          : " reliability; validation; daylong audiorecordings"
+# wordcount         : "7,113"
+
+bibliography      : ["zoo.bib"]
+
+figsintext        : yes
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+lineno            : yes
+
+header-includes:
+  - \usepackage{setspace}
+  - \AtBeginEnvironment{tabular}{\singlespacing}
+  - \AtBeginEnvironment{lltable}{\singlespacing}
+  - \AtBeginEnvironment{tablenotes}{\singlespacing}
+  - \captionsetup[table]{font={stretch=1.5}}
+  - \captionsetup[figure]{font={stretch=1.5}}
+  
+class             : "man"
+output            : papaja::apa6_pdf 
+
+---
+
+```{r setup, include = FALSE}
+library("papaja")
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(scales)
+library(kableExtra)
+library(rel)
+library(ggpubr)
+library(lme4)
+#knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE, fig.pos = "T")
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE)
+```
+
+```{r analysis-preferences, include = FALSE}
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+```{r read-in}
+# read datasets
+
+data_ang <- read.csv("../Derived_Data/classifications_PU_zoon_final17.csv",header=T,sep=",")
+data_td <- read.csv("../Derived_Data/classifications_PU_zoon_final.csv")
+data_all<-rbind(data_ang, data_td)
+
+
+#remove the word mixed that takes up space and is unnecessary
+data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
+#relevel the factor so that it's easier to read
+data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=c("Canonical","Non-Canonical",                   "Crying","Laughing","Junk",levels(data_all$Zoon_classif)[grep("_",levels(data_all$Zoon_classif))]))
+# create lab column with easier to read correspondance
+data_all$lab<-as.character(data_all$Major_Choice)
+data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
+data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
+data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
+data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
+#apply same factor levels as zooniverse so that we can do symmetrical confusion matrices
+
+#add binomials for Linguistic Proportion
+data_all$lab_ling=ifelse(data_all$lab %in% c("Canonical","Non-Canonical"),1,0)
+data_all$zoo_ling=ifelse(data_all$Zoon_classif %in% c("Canonical","Non-Canonical"),1,0)
+data_all$lab_ling[data_all$lab=="Junk"]<-NA
+data_all$zoo_ling[data_all$lab=="Junk"]<-NA
+
+#add binomials for Canonical Proportion
+data_all$lab_can=data_all$zoo_can=NA
+data_all$lab_can[data_all$lab=="Canonical"]<-1
+data_all$lab_can[data_all$lab=="Non-Canonical"]<-0
+data_all$zoo_can[data_all$Zoon_classif=="Canonical"]<-1
+data_all$zoo_can[data_all$Zoon_classif=="Non-Canonical"]<-0
+
+
+demo_data=read.csv("../Derived_Data/demo-data.tsv",sep="\t")
+#add filenames to demo data, to be used later
+demo_data_fn <- demo_data %>% 
+     left_join(select(data_all, filename, ChildID), by = c("ChildID"))
+demo_data_fn<-unique(demo_data_fn)
+
+```
+
+
+TODO
+
+- create OSF for this paper specifically
+- references!
+- merge noncan/can for LENA^TM^ in Table 1
+- appropriately merge col names in tab 1
+- add 2 explo analyses that are still missing
+- Redo pipeline so that it's transparent & integrated
+
+
+Language production at 3 years of age is the best predictor of later academic and economic achievement (Law et al., 2003). Early language delays can adversely affect children’s literacy, behavior, social interaction, and scholastic achievement extending well into adulthood, with early interventions being a better societal investment than later ones (Heckman, 2006). Advancements in the field of wearable technologies, such as LENA^TM^ recorders, have opened new avenues to both early detection of speech pathologies and research in language development more generally. Wearable recorders allow data collection to happen in the child’s natural environment, and at a large scale, which may be particularly helpful for children whose speech is not easily elicited. Although such long-form recordings are increasingly common REF, challenges remain with respect to how these data are handled, annotated, and analyzed. The present work reports on the validity of labels and child-level descriptors of children's vocalizations gathered from citizen scientists, in a comparison to expert lab annotators. In the rest of the Introduction, we first briefly summarize two metrics that can be used to describe individual children's vocalizations in the context of long-form recordings. We then introduce crowdsourcing in general, and crowdsourcing by citizen scientists in particular, as a potential avenue for more rapidly deriving these key metrics from vocalization recordings. 
+
+###  Describing children's vocalizations in long-form recordings
+
+A large body of research has investigated both fine-grained and coarse descriptions of children's vocalizations as a function of age and diagnosis, and it is beyond the scope of this paper to provide a full summary of this work. We instead focus on two descriptors -- Linguistic Proportion and Canonical Proportion -- that are particularly amenable to the kind of big data approaches long-form recordings require. 
+
+To understand why these two descriptors are relevant, it is worthwhile to first consider how the way in which vocal development has been studied in the past may not easily translate to long-form recordings. As mentioned earlier, long-form recordings have several advantages, including capturing the child's vocal patterns in their natural environment and being able to accumulate a great amount of data easily, which is particularly useful for diagnoses and pathologies characterized by low levels of vocal production. However, this also means that there is a great amount of data, and that the audio quality is compromised, as children go about their day transitioning from small to large rooms, with fewer or more people around them, thus providing analysts with an unstable and challenging long audio. In fact, human annotation of such audio is estimated to take about 30 times the audio length, with these estimates being greater the more precise one wants or needs to be (Seidl et al., 2019). It is for this reason that most users of long-form recordings have turned to automatized software for at least a first-pass analysis.
+
+The most commonly used software was created by the LENA^TM^ Foundation, and it returns a diarization of the audio signal split into key talkers, including the child wearing the device, as well as a split of these audio attributed to the child into three categories: crying, other fixed and vegetative signals, and speech vocalizations. These subcategories have not been widely validated (Cristia et al., 2020). To provide an idea of their accuracy, we classified the same segments that are used in the present study using LENA^TM^'s subtypes[^1] to compared these against the laboratory annotations used in the present study. Table 1 shows that LENA^TM^ has a good recall for speech-like vocalizations and crying but not laughing. Moreover, LENA^TM^ lacks an important distinction between more and less advanced vocalizations.
+
+<!-- AS said about not laughing: might be worth noting how low frequency this is and how that might be part of the problem in addition to being difficult to distinguish from crying. -->
+
+[^1]: If a child segment contained speech, then it counted towards canonical/non-canonical; else, if it contained crying it counted towards crying; else, if it contained some fixed signals it counted towards laughing; a small proportion were left that did not have any of the three and were considered as "junk" or not categorized.
+
+```{r tab-LENA-challenge, comment = F, message = F, hide = T, warning = F, echo = F, results = "asis"}
+mycaption="Comparison of recall percentages obtained with the baseline algorithm created by the ComParE team, in the context of the ComParE 2019 BabySounds subchallenge (Schuller et al., 2019), LENATM labels (note LENATM does not distinguish between Canonical and Non-canonical), and those obtained in this study through Zooniverse annotations. Label frequency indicates the prevalence of the relevant label (Crying, Laughing, etc.) in each dataset (the same Lab dataset was used for both LENATM and Zooniverse). UAR stands for unweighted average recall, WAR for weighted average recall (which takes into account label frequency)."
+
+read.table("tab-lena-challenge.txt",header=T,sep="\t")->tab1
+colnames(tab1)<-c("","Recall","","","Label","Frequency")
+kable(tab1,cap=mycaption)
+```
+
+
+Other automatized algorithms have been developed in recent years, saliently ones attempting to classify child vocalizations into crying, laughing, canonical, and non-canonical (Schuller et al., 2019). The split of speech vocalizations into canonical and non-canonical, and the overt inclusion of laughing, allow a somewhat finer-grained picture of children's vocal activity. An advantage of these algorithms is that there exists a challenge where performance has been benchmarked, so unlike LENA^TM^'s algorithms, we know which algorithms perform better than others. The ComParE 2019 BabySounds sub-challenge established a state-of-the-art baseline with a test-set unweighted average recall of around 55% (see Table 1). The team who won the challenge improved this by about 2%, primarily through gains in the laughing class obtained by adding training data (REF). Given that the laughing class is very rare, improvements in this class do not mean that performance as a whole, when all classes are considered, changes very much. 
+
+One possibility that has only recently begun to be explored is the use of derived metrics. So instead of evaluating algorithms and other annotation procedures on their accuracy at individual labels, one can derive a metric that more closely relates to vocalization development. 
+
+For example, most work using LENA^TM^ software reports on children's vocalization counts. Although this has been sometimes criticized as being more about quantity than quality REF, this is a promising metric because it shows correlations with age (which is a proxy of development), and it can be extracted quite accurately with LENA^TM^ REF. Additionally, the child vocalization count metric has been found to be concurrently and predictively correlated with an effect size r ~ .3 with standardized language scores in a meta-analysis REF. Thus despite representing a composite of skills, vocalization count may provide a useful estimate of vocalization development. 
+
+<!-- AS said about voc count not sure I agree: https://pubs.asha.org/doi/full/10.1044/2020_JSLHR-19-00281?casa_token=fBByMmPlxbMAAAAA%3AbS2O5Mrymn30_aQWybitwMecENkDYLTjzexCqZcnX2Rx1VJ7OaT9qkIGNAAM95xRBGW_D3XX7mMEWHo -->
+
+
+Here, we focus on two alternative composite metrics. An additional metric that can be derived once children's vocalizations are split into crying, laughing, canonical, and non-canonical is the Linguistic Proportion: the proportion of vocalizations that are linguistic (canonical and non-canonical) out of all vocalizations. To our knowledge, this metric has not been extensively explored previously, but it is likely that this proportion increases with age REF.
+
+<!-- BT said about LP May want to put this 2nd as more exploatory given more lit on can. prop. -->
+
+Yet another metric that could be extracted to estimate relative linguistic complexity is the Canonical Proportion: the proportion of vocalizations that are canonical out of all linguistic (canonical and non-canonical) vocalizations. One recent study has established that the Canonical Proportion extracted from daylong recordings is significantly correlated with age in a multicultural and multilingual sample REF. Importantly, this association was established in a sample of children going up to 3 years of age, and thus well beyond the babbling period, and into first words and word combinations.
+
+There is a wider research base documenting the potential importance of the Canonical Proportion, and related metrics, although this work focuses on babbling and thus typically on infants under one year of age. A critical milestone involves the increasingly common production of Canonical Syllables, consonant-vowel (CV) or vowel-consonant (VC) sequences that resemble those found in adult speech (Oller et al., 1998). Given its adult-like CV or VC structure, canonical babble is considered to be a starting point on the path to recognizable speech. Canonical syllables show a higher complexity given the smooth articulatory transition between a consonant and a vowel (or vice versa), when compared to more primitive sounds such as squeals, or isolated vowels. Some work suggests that Canonical Proportions above .15 are expected by about 10 months of age in typical development (Oller et al., 1999). In addition, delayed onset of canonical babbling has been documented in a wide variety of disorders and delays (Belardi et al., 2017; Fasolo et al., 2008; Lang et al., 2019; Patten et al., 2014; Stoel-Gammon, 2016).
+
+<!-- AS said: maybe name the disorders & delays here? -->
+
+In sum, there is a growing literature attempting to use data from daylong recordings to describe young children's vocalizations, but there are two outstanding challenges. The first pertains to how the data are analyzed, with human annotation being costly. The second relates to how to extract useful descriptors, both in terms of individual vocalizations and at the child level.
+
+
+### Crowdsourcing: A potential solution for annotation
+
+Crowdsourcing refers to the process whereby a task is solved by a crowd, rather than an individual. A number of fields, particularly in the data-driven sciences, have already engaged in the collection of data (including annotations) through crowdsourcing, thanks to its low cost and ecological value (Crump, McDonnell, & Gureckis, 2013; Sescleifer, Francoisse, & Lin, 2018;  Sprouse, 2011). For example, a systematic review on crowd-sourced ratings of speech (Sescleifer et al., 2018) found that "lay ratings are highly concordant with expert opinion, validating crowdsourcing as a reliable methodology"; across studies, crowdsourced and expert listener classifications yielded a mean correlation coefficient of .81. On the other hand, the systematic review returned only 8 studies (of which only four were published in peer-reviewed journals), suggesting that there is considerable need for further research on this topic.
+
+Mechanical Turk (MTurk) MTurk is an online labor market created by Amazon to assist "requesters"''" in hiring and paying "workers" for the completion of computerized tasks. Although it is a leading crowdsourcing service, and some evidence suggests MTurkers' annotations can be quite reliable (Berinsky et al., 2012), some question marks are raised as some "workers'" turn out to be bots, or poorly motivated (and potentially exploited).
+
+A promising crowd-sourcing alternative has arisen in recent years: citizen science, a research technique that engages the public in the collection of scientific information (ref). As citizen scientists do not receive compensation, this alternative to platforms such as MTurk can overcome the limitations posed by potential exploitation of workforce and/or the use of bots. Volunteers are entirely motivated by the desire to contribute to research advancements as well as the pleasure they derive from the task itself.
+
+One of the most successful platforms hosting citizen science projects is Zooniverse (zooniverse.org). The website hosts a multitude of interdisciplinary projects that have allowed the public to take part in cutting-edge scientific research, from marine biology to papyrology. Zooniverse has proven extremely useful in those fields where the complexity of the data collected is too high to be automatically interpreted using computer algorithms (ref) At the same time, the tasks that human volunteers are asked to complete are sufficiently simple that citizens can carry them out without a background in science or any extensive training (ref).
+
+Citizen science may be particularly helpful when analyzing infants' data from wearables, which remain challenging to annotate as mentioned above. There is one previous study that attempted this approach. @cychosz2019canonical drew child vocalization data from a diverse set of corpora centered on children learning one of four languages: English, Tseltal, Tsimane', and Yélî. For the English and Tsimane' corpora, vocalizations were automatically identified using LENA^TM^, whereas the other two were extracted through manual segmentation. Vocalizations were split into maximally 500-ms long clips, and presented to annotators through the citizen science iHearUPlay platform, with the aim that each clip received 3 classifications into crying, laughing, canonical, non-canonical, or "junk" (with the latter tag used for clips that did not contain clear child voice). They then derived an implementation of the Canonical Proportion, as the proportion of clips receiving a majority judgment of canonical out of the clips receiving a majority judgement of canonical or non-canonical. They found that this canonical ratio increased with infant age in an analysis collapsing across corpora, which provides a first proof of principle that citizen scientists' annotations could be an appropriate solution to the problem of annotating child vocalizations from wearables. The authors also studied how their canonical ratio related to age within each corpus that had a sufficient number of children varying in age. They found that in one English corpus bearing on very young infants, the proportion of clips assigned to the "junk" category was very high. Additionally, they found that the correlation between canonical ratio and age was much weaker in two corpora where vocalizations were segmented with LENA^TM^ than through manual segmentation. In sum, these analyses within corpora reveal that data may not be uniformly useful, with potential variation across corpora, children, and methods. 
+
+
+### The present work
+
+Our work seeks to broaden the already promising results that have emerged from previous work summarized above. We hope that this methodology will open the road to larger scale analyses of children's vocalizations as captured by wearables. In addition, we went beyond @cychosz2019canonical's study in two important ways. First, we relied on the largest and best established citizen science platform: Zooniverse hosts more than 1.6 million users from diverse walks of life, and it offers a completely automatized API system to more easily scale tasks in a transparent and cumulative science fashion. In contrast, the authors of that paper told us that, in order to complete their data annotation, they recruited the help of students in their classes and labs, and sometimes the researchers themselves took on a considerable annotation load. This means that the process draws on expert resources, whose time is expensive. Moreover, the people these researchers recruit tend to be more accustomed to child vocalization data, which may improve their annotation performance, and thus provide an overestimate of the quality of the annotations that can be realistically done within a truly citizen science framework. Those authors also had to rely on manual extraction of the resulting data from the iHearUplay team, which added to the administrative load. Second, a core goal of the present work was to determine how citizen scientists' annotations fare compared to the current gold standard, laboratory annotations. @cychosz2019canonical did not have a gold standard for their data. 
+
+Thus, the present study aimed to contribute a key piece of evidence missing in this discussion: To what extent do laboratory and citizen science annotations agree when describing young children's vocalizations? We examined the extent to which such classifications agree, by quantifying the correspondence across these two modes of annotations at the level of individual clips (vocalizations), and at the level of individual children. It was important for generalizability purposes to examine data from children with variable biological, mental age, and vocal maturity levels. We therefore included children in a wide age range, with some of the children being diagnosed with Angelman Syndrome, as well as low-risk controls. 
+
+At the segment level, we checked the extent to which laboratory annotations made by experts agreed with judgments made by citizen scientists. We used confusion matrices to describe annotation convergence and divergence patterns, and overall accuracy, kappa, and Gwet's AC1 coefficient as statistical descriptors. Given previous results from machine learning classifiers REF, we expected agreement to be moderate at this level, with potentially more erratic results for categories that are rarer.
+
+When considering correspondence at the level of individual children, we derived two metrics: the Linguistic Proportion (canonical+non-canonical)/(all vocalizations); and the Canonical Proportion (canonical)/(all linguistic vocalizations). Previous work suggests that children with Angelman Syndrome show decreases in Canonical Proportion with age, whereas in typically-developing infants, conversely, the canonical ratio was expected to increase with age [@hamrick2019capturing]. Although we could not rely on previous work to make predictions regarding the Linguistic Proportion, we reasoned that we should observe an increase in the Linguistic Proportion for both populations.
+
+More specific to our research aims, we checked the degree to which laboratory and citizen science annotations converged at the child level by using correlations across the two. We additionally explored under what conditions Zooniverse judgments are more closely aligned with laboratory judgments using linear mixed models.
+
+## Methods
+
+All analyses and key data are available for reproduction on OSF (https://osf.io/57yha/). Computer code used to collect the Zooniverse judgments is available from GitHub (Semenzin, 2020).
+
+### Participants 
+
+The full data set includes data from 20 children: 10 English-speaking children (6 males, 4 females; age range 11-53 months, mean=41.5 months) diagnosed with Angelman syndrome (AS) and 10 low-risk control (LRC) children (6 males, 4 females; age range 4-18 months, mean=11.7 months). As children diagnosed with Angelman syndrome typically have severe cognitive and language delays and most do not produce more than 1-2 words consistently, we compare their linguistic production data against that of younger children with theoretically similar language profiles.
+
+### Equipment and data collection procedure
+
+Recordings were obtained with the Language ENvironment Analysis (LENA^TM^) Digital Language Processor,  LENA^TM^ is a lightweight recorder (< 60 g, 5.5 cm x 8.5 cm x 1.5 cm) designed to be worn inside a breast-pocket of purpose-made clothing. In our data, every child contributed at least one daylong recording, with one child contributing two recordings (duration 11.58-16.00 hours, mean 15.05 hours).
+
+### Data preprocessing (LENA^TM^)			
+
+The first step we took before beginning the annotation process was the identification of children's vocalizations within day-long recordings. We did this automatically, using the LENA^TM^ proprietary software. Specifically, the LENA^TM^ software attempts to assign segments of speech either to the key child (the one wearing the recorder), or to one of 15 other categories in the child’s environment (e.g., Female-Adult, TV). Key child labels have a precision of about XX% and a recall of about XX% (ref). These stretches of audio assigned to the key child can contain cries, vegetative sounds, and linguistic vocalizations, as well as interstitial pauses. We will refer to them as segments, to highlight the fact that they are stretches of audio segmented out as belonging to the key child, but they may not be individual vocalizations.
+
+<!-- BT said Lisa add in how portions of recording were selected (high vol + random) -->
+
+### Annotation by lab experts
+
+Annotation was carried out at the segment level during lab coding. A subset of segments LENA^TM^ identified as the key child were selected for human annotation.  Segments were selected from 30 five-minute sections of the child’s recording: 10 sections during which the child was vocalizing at their highest rate, and 20 sections drawn randomly from the remainder of the recording. To ensure generalizability of our data, we included in this subset a number of segments of audio coming from both periods of high child volubility, as well as randomly selected periods of the day.
+
+Annotations were carried out by 20 undergraduate students working in either Speech, Language, and Hearing Sciences or clinical psychology laboratories. Before annotation, coders completed an ethical conduct of research course and received HIPAA compliance training. After this, they complete a brief training on vocal maturity that involves 1) reading relevant literature, 2) reviewing examples of various annotation categories and 3) completing a brief quiz to test their annotation accuracy. Coders then proceed to the classification, where they make decisions on whether a segment is a cry, laugh, non-canonical syllable(s), canonical syllable(s), or a word. Coders are instructed to classify each segment based on the highest level of vocal maturity it contains (e.g., a segment with both canonical and non-canonical syllables would be classified as canonical; a segment with both laughing and non-canonical syllables would be classified as non-canonical). For canonical, non-canonical, and word segments, coders indicated how many syllables of each type of vocal maturity they hear (e.g., "ah ma ba" would be 1 non-canonical and 2 canonical syllables). Coders are also given a "Don’t Mark" option, which they are instructed to use if the segment does not sound like a segment made by the target child, or if there is any overlapping speech or other noise in the background which could affect acoustic analyses. For the purposes of the present study, we considered a "word" judgment to be equivalent to a "canonical" judgment. This may be false sometimes (e.g., "oh" may be coded as a real word by laboratory experts, although it is a non-canonical syllable), but we could not have a "word" judgment in our Zooniverse annotations because that requires context (which compromises privacy -- see next section). This process resulted in high levels of agreement: 97.22% of the lab-annotated segments had either 2 or 3 coders agree.
+
+<!-- Reliability is built into the annotation routine such that each segment is coded by 3 separate coders, and only segments where 2 of 3 coders agree are used in subsequent phases of this study.  -->
+<!-- Lisa aC removed this because this is actually false -- all segments were put up, including those with fewer than 2 agreement -->
+
+<!-- Lisa, What happens if there are multiple syllables or multiple words? also, what if there is speech and non-speech, eg cry, in the same segment? -->
+
+### Annotation on Zooniverse
+
+A substantial concern that emerges when considering citizen science annotation for spontaneous speech data is the risk of a privacy breach: even short clips can contain personal information that can expose the identity of the speaker, such as addresses or names, or contain sensitive and private information. Fortunately, a study by Seidl et al. (2019) determined that when segments are divided into shorter chunks (400-600ms), human annotators can code our categories of interest (canonical, laughing, crying, etc.) with a classification quality comparable to the one carried out on full segments. We therefore used very short chunks (500ms) as these are unlikely to contain more than two syllables, and thus prevent the identification of any personal information. 
+
+Specifically, the segments extracted were automatically cut into clips of exactly 500ms, extracting neighboring silence when necessary, before being uploaded on the Zooniverse platform. To allow the recovery of the original segments at later stages of the analysis, the scripts created a metadata file with the mapping between 500ms clips and their corresponding segment. Clips were then uploaded on Zooniverse using Panoptes, their open-source, command-line based API for data handling (https://github.com/zooniverse/panoptes-cli).
+
+Citizen scientists could access the project by logging in, or as anonymous participants. Before starting the annotation, participants were given a quick tutorial which walked them through the steps of the annotation workflow (i.e., how to play a sound, how to make a selection; see Figure 1). In this tutorial, we included one audio example for each category in order to make the classification task as smooth as possible. Further clarifications on what constitutes Canonical and Non-canonical utterances, as well as five audio examples for each of the categories, were available through the Field Guide, which users could access by clicking on the right side of the screen. The Field Guide could be consulted at any point of the classification without interrupting the task.
+
+Users were asked to assign each 500ms clip to one out of five possible categories: (1) canonical, (2) non-canonical, (3) crying, (4) laughing, and (5) junk (overlapping speech, non-infant speech, silence, external sounds). Notice that the latter is narrower than the "Don't mark" category of the lab annotation routine, which was used any time there was noise or overlap that could affect acoustic analyses. 
+
+Following recommendations from the Zooniverse board, we collected 5 judgments per clip, rather than 3 as used in the laboratory. Majority agreement is thus achieved when 3 out of 5 judgements agree (rather than 2 out of 3). In exploratory analyses, we assess the impact of collecting a smaller number of judgments per clip.
+
+``` {r fig-zoo, comment=F, message=F, hide = T, warning = F, echo = F,  fig.cap="Screen captures of the 6 stages of the tutorial, three of which are shown here: The initial explanation of the trial, examples of canonical vocalizations, and the classification choice the user needs to make; as well as the field guide, which remains accessible on the right of the screen throughout the session, and which allows users to revise examples of the different categories."}
+knitr::include_graphics("zooniverse-pufig.pdf")
+```
+
+
+### Data post-processing
+
+An impressive total of 4,825 individual Zooniverse users provided labels for the Maturity of Baby Sounds project, of which the present data set is one part. For this project, we collected a total of 169,767 judgments provided for 33,731 500-ms chunks, corresponding to 11,980 LENA^TM^ segments. Nearly a fifth of chunks did not have at least 3 labels in agreement out of the 5 Zooniverse labels (N = 6,585, 19% of all chunks). Of the chunks without a majority agreement, 4341 (66%) contained one or two Junk judgements (out of 5), 6523 (99,9%) had at least two matching judgements (the threshold used for lab-annotated segments), and only 61 (0,01%) had 5 different judgements. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the 81% of chunks that did have at least 3 labels in agreement; this represented 135,725 labels for 27,145 chunks, corresponding to 11,593 LENA^TM^ segments. As the segments average 1.12 seconds in length, this means about 3.8 hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse). 
+
+Lab annotators provided judgments at the level of LENA^TM^ segments, whereas Zooniverse annotators provided judgments on 500 ms chunks, which are typically smaller than the segments. Therefore, we needed to combine chunk-level judgments to reconstruct segment-level judgments.
+
+We did this by considering the majority label extracted from Zooniverse judgements for all chunks associated with each segment, and then following these rules: If the majority label for all chunks associated with a given segment were junk, then the segment was labelled as junk; then, following a hierarchy (Canonical>Non-canonical>Laughing>Crying), segments with at least one instance of each judgement were labelled as such: e.g. if one canonical judgement was present, then the segment was labelled as canonical, otherwise if a non-canonical judgement was present, the segment was labelled as non-canonical, and so on. This is essentially the same thought process expert annotators followed when labeling segment-level audio, as each segment can represent multiple classification subtypes). LENA^TM^ segments are not equivalent to child vocalizations: A segment may contain 1 or more vocalizations, which may be of the same type or not. 
+
+<!-- AS said I feel like a figure might help here. -->
+
+
+```{r, echo=F}
+# remove non-majority labels
+#TODO 
+
+# we map the mixed
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Crying"]<-"Crying"
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Canonical"]<-"Canonical"
+# +
+data_all$Zoon_classif[data_all$Zoon_classif=="Canonical_Crying"]<-"Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Canonical_Laughing"]<-"Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical_Crying"]<-"Non-Canonical"
+
+data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Laughing"]<-"Crying"
+data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Canonical_Laughing"]<-"Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Laughing_Non-Canonical"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical"]<-"Non-Canonical"
+data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical_Laughing"]<-"Non-Canonical" 
+data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing"]<-"Non-Canonical"
+
+#and reset the factors for cleanliness
+data_all$Zoon_classif=factor(data_all$Zoon_classif)
+data_all$lab=factor(data_all$lab)
+sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
+
+table_zoon=round(table(data_all$Zoon)/sum(table(data_all$Zoon))*100)
+table_lab=round(table(data_all$lab)/sum(table(data_all$lab))*100)
+```
+
+```{r prepare data by child, echo=F}
+
+#get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
+ztab=table(data_all$filename,data_all$Zoon_classif)
+z_lp=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
+z_cp=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
+
+ltab=table(data_all$filename,data_all$lab)
+l_lp=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
+l_cp=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
+
+#and also get junk from zooniverse
+z_junk=ztab[,c("Junk")]/rowSums(ztab)
+
+  
+#put all the proportions together
+if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) proportions=cbind(rownames(ztab),z_lp,z_cp,l_lp,l_cp,z_junk) else print("oops this code needs to be more complex because we don't have the same kids for the two proportions")
+colnames(proportions)[1]<-"filename"
+
+#ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
+#improvement: now we merge with a demo data tab, but note this is merged with child id, so the problem of multiple recs per child is still there
+
+# Created demo_data with filenames. Use filenames instead of childIDs to merge proportions and demo data.
+
+merge(proportions,demo_data_fn,by="filename")->proportions
+colnames(proportions)[dim(proportions)[2]]<-"Age"
+
+#cbinding results in text, so we numerize the proportions
+for(thisvar in c("z_lp","z_cp","l_lp","l_cp","z_junk")) proportions[,thisvar]=as.numeric(as.character(proportions[,thisvar]))
+
+#add median junk
+proportions$median_junk<-ifelse(proportions$z_junk<median(proportions$z_junk),"lower_junk","higher_junk")
+
+#summary(proportions)
+
+merge(data_all,proportions,all=T)->data_all
+```
+## Results
+
+### Descriptive analyses
+
+<!-- lh said I think you mention above that individuals with AS rarely use more than a handful of meaningful words - if we decide to go with just looking at these analyses broken down by group, that might be helpful to reiterate here -->
+<!-- ac said in response: why do you talk about meaningful words? These analyses do not separate words from the rest... -->
+
+In this section, we provide descriptive analyses of our dataset. According to lab annotators, `r table_lab["Canonical"]`% of segments were canonical, `r table_lab["Non-Canonical"]`% non-canonical, `r table_lab["Laughing"]`% laughing, and `r table_lab["Crying"]`% crying, with the remaining `r table_lab["Junk"]`% being categorized as "Don't mark". Zooniverse data revealed a similar distribution:  `r table_zoon["Canonical"]`% canonical, `r table_zoon["Non-Canonical"]`% non-canonical, `r table_zoon["Laughing"]`% laughing, `r table_zoon["Crying"]`% crying, `r table_zoon["Junk"]`% junk.
+Next, we inspected the relationship between age and child-level derived metrics, of which we had two: i) Linguistic Proportion = ("Canonical"+"Non-Canonical")/"All vocalizations" (i.e., we remove, junk), and ii) Canonical Proportion = "Canonical"/("Canonical"+"Non-Canonical") (i.e., we remove junk + non-linguistic). See Figure 2 for results.
+
+
+
+```{r fig-corage, echo=F,fig.cap="Correlations between child-level descriptors and age as a function of metric (linguistic ratio in the top row, canonical ratio in the bottom row), annotation method, and child group (red=low-risk, and black Angelman Syndrome)"}
+
+prettynames=c("Linguistic Proportion (Zooniverse)","Canonical Proportion (Zooniverse)",
+             "Linguistic Proportion (Lab)","Canonical Proportion (Lab)" )
+names(prettynames)<-c("z_lp","z_cp","l_lp","l_cp")
+mycols=c("black","red")
+names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
+mypch=c(4,20)
+names(mypch)<-c("Low-RiskControl","AngelmanSyndrome")
+
+lp_range=range(proportions[,c("z_lp","l_lp")])
+cp_range=range(proportions[,c("z_cp","l_cp")])
+
+#jpeg("../Results/corage.jpg",width=20,height=20,units="cm",res=300)
+layout(matrix(c(1:4), 2, 2, byrow = F))
+par(mar = c(4, 4, 1, 1))
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=4,ncol=2)
+rownames(myr)<-c("z_lp","z_cp","l_lp","l_cp")
+colnames(myr)<-c("AS","LR")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) {
+
+  if(thisvar %in% c("z_lp","l_lp")) myrange=lp_range else myrange=cp_range
+    
+  plot(proportions[,thisvar]~proportions$Age, pch=mypch[proportions$Diagnosis],xlab="Age (months)",ylab=prettynames[thisvar],
+       col=mycols[proportions$Diagnosis],
+         ylim=myrange)
+  abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar],proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"])
+    myr[thisvar,"AS"]=round(thiscor$estimate,3)
+    mylb[thisvar,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[thisvar,"AS"]=round(thiscor$conf.int[2],3)
+    myn[thisvar,"AS"]=round(thiscor$parameter,3)
+    myp[thisvar,"AS"]=round(thiscor$p.value,3)
+    
+    #add r to figure
+  text(mean(proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"]),mean(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar]),paste0("r=",myr[thisvar,"AS"]),col="black")
+
+  #repeat for LR  
+    abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis!="AngelmanSyndrome",thisvar],proportions$Age[proportions$Diagnosis!="AngelmanSyndrome"])
+    myr[thisvar,"LR"]=round(thiscor$estimate,3)
+    mylb[thisvar,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[thisvar,"LR"]=round(thiscor$conf.int[2],3)
+    myn[thisvar,"LR"]=round(thiscor$parameter,3)
+    myp[thisvar,"LR"]=round(thiscor$p.value,3)
+    
+    #add r to figure
+    
+    text(mean(proportions$Age[proportions$Diagnosis!="AngelmanSyndrome"]),mean(proportions[proportions$Diagnosis!="AngelmanSyndrome",thisvar]),paste0("r=",myr[thisvar,"LR"]),col="red")
+}
+#dev.off()
+```
+
+
+
+
+Descriptive analyses on the laboratory annotations showed that correlations between the Linguistic Proportion and age differed across the groups. There was a near-zero relationship among the older children diagnosed with Angelman Syndrome r(`r myn["l_lp","AS"]`) = `r myr["l_lp","AS"]`, CI [`r mylb["l_lp","AS"]`,`r myhb["l_lp","AS"]`], p=`r myp["l_lp","AS"]`]; and a significant association among younger low-risk control children r(`r myn["l_lp","LR"]`) = `r myr["l_lp","LR"]`, CI [`r mylb["l_lp","LR"]`,`r myhb["l_lp","LR"]`], p=`r myp["l_lp","LR"]`]. The Canonical Proportion exhibited non-significant developmental decreases among older children diagnosed with Angelman Syndrome r(`r myn["l_cp","AS"]`) = `r myr["l_cp","AS"]`, CI [`r mylb["l_cp","AS"]`,`r myhb["l_cp","AS"]`], p=`r myp["l_cp","AS"]`]; and marginal developmental increases among low-risk control r(`r myn["l_cp","LR"]`) = `r myr["l_cp","LR"]`, CI [`r mylb["l_cp","LR"]`,`r myhb["l_cp","LR"]`], p=`r myp["l_cp","LR"]`].
+
+
+Using the Zooniverse annotations, we found that the association with age was very weak for children diagnosed with Angelman Syndrome r(`r myn["z_lp","AS"]`) = `r myr["z_lp","AS"]`, CI [`r mylb["z_lp","AS"]`,`r myhb["z_lp","AS"]`], p=`r myp["z_lp","AS"]`]; whereas younger low-risk control children showed a significant increase with age r(`r myn["z_lp","LR"]`) = `r myr["z_lp","LR"]`, CI [`r mylb["z_lp","LR"]`,`r myhb["z_lp","LR"]`], p=`r myp["z_lp","LR"]`]. Similarly, there were non-significant developmental decreases in the Canonical among children with Angelman Syndrome r(`r myn["z_cp","AS"]`) = `r myr["z_cp","AS"]`, CI [`r mylb["z_cp","AS"]`,`r myhb["z_cp","AS"]`], p=`r myp["z_cp","AS"]`]; and marginal developmental increases among low-risk control children, r(`r myn["z_cp","LR"]`) = `r myr["z_cp","LR"]`, CI [`r mylb["z_cp","LR"]`,`r myhb["z_cp","LR"]`], p=`r myp["z_cp","LR"]`].
+
+
+
+## Main analyses
+
+Next, we discuss the correspondence between citizen science classifications and the laboratory gold standard, at the level of individual clips. Results were visualized with a confusion matrix showing precision and recall (Figure 3): the diagonal elements show the number of correct segment-level classifications for each class while the off-diagonal elements show non-matching classifications.
+
+```{r mygac-conf, echo=F}
+mygac=gac(data = sample_data, kat = 5, weight = c("unweighted"),
+    conf.level = 0.95)
+
+mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
+conf_tab=mycf$table
+# this package uses sensitivity & specificity
+#Sensitivity=recall
+#Specificity=precision
+#mycf
+```
+
+
+
+
+
+```{r fig-prec-rec, echo=F}
+
+
+colsums=colSums(conf_tab)
+my_conf_tab=conf_tab
+for(i in 1:dim(conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
+#colSums(my_conf_tab) #check
+prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"pr"
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","pr")])
+prec_plot = ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(pr)), colour = "white") +
+  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=4) +
+  geom_text(aes(label = Freq), vjust = 1,size=4) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Precision")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# repeat for recall
+rowsums=rowSums(conf_tab)
+my_conf_tab=conf_tab
+for(i in 1:dim(conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/rowsums[i]
+#rowSums(my_conf_tab)
+prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
+prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
+colnames(prop_cat)[3]<-"rec"
+data.frame(conf_tab)->stall
+stall$id=paste(stall$Lab,stall$Zooniverse)
+stall=merge(stall,prop_cat[c("id","rec")])
+rec_plot = ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
+ geom_tile(aes(fill= rescale(rec)), colour = "white") +
+  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=4) +
+  geom_text(aes(label = Freq), vjust = 1,size=4) +
+  scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
+     theme(legend.position = "none") +
+  xlab("Zooniverse") + ylab("Lab") +
+  ggtitle("Recall")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+ggarrange(prec_plot, rec_plot, 
+          labels = c("A", "B"),
+          ncol = 2, nrow = 1)
+
+```
+
+
+These visualizations suggest that performance is moderate to good, which was confirmed via statistical analyses. The overall (weighted) accuracy is `r round(mycf$overall["Accuracy"]*100)`%, CI = [`r round(mycf$overall["AccuracyLower"]*100)`,`r round(mycf$overall["AccuracyUpper"]*100)`],  kappa is `r round(mycf$overall["Kappa"],3)`, and the Gwet's AC1 coefficient is `r round(mygac$est,3)`, CI = [`r round(mygac$lb,3)`,`r round(mygac$ub,3)`]. 
+
+
+
+### Child level descriptors
+
+
+
+```{r corlab-zoo, echo=F}
+
+layout(matrix(c(1:2), 1, 2, byrow = F))
+par(mar = c(4, 4, 1, 1))
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=2,ncol=3)
+rownames(myr)<-c("lp","cp")
+colnames(myr)<-c("AS","LR","all")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
+
+  plot(proportions[,"z_lp"]~proportions[,"l_lp"], xlab=prettynames["l_lp"],ylab=prettynames["z_lp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$Diagnosis], pch=mypch[proportions$Diagnosis])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome","z_lp"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_lp"])
+    myr[1,"AS"]=round(thiscor$estimate,3)
+    mylb[1,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[1,"AS"]=round(thiscor$conf.int[2],3)
+    myn[1,"AS"]=round(thiscor$parameter,3)
+    myp[1,"AS"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+    abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis!="AngelmanSyndrome","l_lp"],proportions[proportions$Diagnosis!="AngelmanSyndrome","z_lp"])
+    myr[1,"LR"]=round(thiscor$estimate,3)
+    mylb[1,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[1,"LR"]=round(thiscor$conf.int[2],3)
+    myn[1,"LR"]=round(thiscor$parameter,3)
+    myp[1,"LR"]=round(thiscor$p.value,3)
+    
+#repeat for all cor
+    
+      thiscor=cor.test(proportions$z_lp,proportions$l_lp)
+    myr[1,"all"]=round(thiscor$estimate,3)
+    mylb[1,"all"]=round(thiscor$conf.int[1],3)
+    myhb[1,"all"]=round(thiscor$conf.int[2],3)
+    myn[1,"all"]=round(thiscor$parameter,3)
+    myp[1,"all"]=round(thiscor$p.value,3)
+    
+    # repeat whole for cp
+    
+    lims=range(c(proportions[,"z_cp"],proportions[,"l_cp"]))
+
+  plot(proportions[,"z_cp"]~proportions[,"l_cp"], xlab=prettynames["l_cp"],ylab=prettynames["z_cp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$Diagnosis], pch=mypch[proportions$Diagnosis])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome","z_cp"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_cp"])
+    myr[2,"AS"]=round(thiscor$estimate,3)
+    mylb[2,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[2,"AS"]=round(thiscor$conf.int[2],3)
+    myn[2,"AS"]=round(thiscor$parameter,3)
+    myp[2,"AS"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+    abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$Diagnosis!="AngelmanSyndrome","l_cp"],proportions[proportions$Diagnosis!="AngelmanSyndrome","z_cp"])
+    myr[2,"LR"]=round(thiscor$estimate,3)
+    mylb[2,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[2,"LR"]=round(thiscor$conf.int[2],3)
+    myn[2,"LR"]=round(thiscor$parameter,3)
+    myp[2,"LR"]=round(thiscor$p.value,3)
+    
+#repeat for all cor
+    
+      thiscor=cor.test(proportions$z_cp,proportions$l_cp)
+    myr[2,"all"]=round(thiscor$estimate,3)
+    mylb[2,"all"]=round(thiscor$conf.int[1],3)
+    myhb[2,"all"]=round(thiscor$conf.int[2],3)
+    myn[2,"all"]=round(thiscor$parameter,3)
+    myp[2,"all"]=round(thiscor$p.value,3)
+    
+    
+mycortab=t(myr)
+rownames(mycortab)<-paste("All seg",rownames(mycortab))
+```
+
+
+
+Although the classification at the clip level is only moderately accurate, what we are ultimately interested in is whether citizen scientists’ classifications are able to provide a reliable snapshot of childrens’ individual development. Looking at all 20 children together, we found a strong positive correlation r(`r myn["lp","all"]`) = `r myr["lp","all"]`, CI [`r mylb["lp","all"]`,`r myhb["lp","all"]`], p=`r myp["lp","all"]`] between Linguistic Proportion by child from the Zooniverse and the lab annotators' data.  When we split by participant group, correlations remain high: for Angelman Syndrome r(`r myn["lp","AS"]`) = `r myr["lp","AS"]`, CI [`r mylb["lp","AS"]`,`r myhb["lp","AS"]`], p=`r myp["lp","AS"]`]; low-risk control r(`r myn["lp","LR"]`) = `r myr["lp","LR"]`, CI [`r mylb["lp","LR"]`,`r myhb["lp","LR"]`], p=`r myp["lp","LR"]`]. 
+
+Similarly, a strong positive correlation is found in the Canonical Proportion r(`r myn["cp","all"]`) = `r myr["cp","all"]`, CI [`r mylb["cp","all"]`,`r myhb["cp","all"]`], p=`r myp["cp","all"]`]. When we split by participant group, correlations remain high although we do note they are somewhat smaller for the older children with Angelman Syndrome: r(`r myn["cp","AS"]`) = `r myr["cp","AS"]`, CI [`r mylb["cp","AS"]`,`r myhb["cp","AS"]`], p=`r myp["cp","AS"]`]; than the low-risk control children r(`r myn["cp","LR"]`) = `r myr["cp","LR"]`, CI [`r mylb["cp","LR"]`,`r myhb["cp","LR"]`], p=`r myp["cp","LR"]`.
+
+
+
+
+
+```{r glmer-agediag, echo=F}
+# one outlier in ling prop is removed
+
+ling_all=glmer(lab_ling~zoo_ling*Diagnosis*Age + (1|ChildID),data=data_all,family="binomial",subset=c(ChildID!="3681_1"))
+#plot(lin_mod)
+# doesn't converge
+
+ling_AS=glmer(lab_ling~zoo_ling*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis=="AngelmanSyndrome"))
+#only effect of zoo
+
+ling_LR=glmer(lab_ling~zoo_ling*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis!="AngelmanSyndrome" & ChildID!="3681_1"))
+#both main and interaction are sig
+
+
+can_all=glmer(lab_can~zoo_can*Diagnosis*Age + (1|ChildID),data=data_all,family="binomial")
+#doesn't converge either
+
+can_AS=glmer(lab_can~zoo_can*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis=="AngelmanSyndrome"))
+#only effect of zoo
+
+can_LR=glmer(lab_can~zoo_can*Age + (1|ChildID),data=data_all,family="binomial",subset=c(Diagnosis!="AngelmanSyndrome"))
+#both main and interaction are sig
+
+```
+
+## Additional analyses
+
+We additionally explored under what conditions Zooniverse judgments more closely aligned with laboratory judgments. In previous work using a similar method, for instance, data from all three children from one dataset were often labeled as "Junk" (i.e., not a child's vocalization), and the data points from this corpus stood out when the authors attempted to integrate results with other corpora [@cychosz2019canonical]. A high proportion of "Junk" may indicate that automated segmentation was errorful for those children, and may be a sign that the rest of the data could be compromised as well. 
+
+```{r prelim-junk, echo=F}
+junkXdiag=t.test(proportions$z_junk ~ proportions$Diagnosis)
+
+```
+
+
+
+
+```{r cor-junk, echo=F}
+
+mycols=c("blue","darkgreen")
+mypch=c(10,18)
+names(mycols)=names(mypch)=c("lower_junk","higher_junk")
+
+layout(matrix(c(1:2), 1, 2, byrow = F))
+par(mar = c(4, 4, 1, 1))
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=2,ncol=2)
+rownames(myr)<-c("lp","cp")
+colnames(myr)<-c("lower_junk","higher_junk")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
+
+  plot(proportions[,"z_lp"]~proportions[,"l_lp"], xlab=prettynames["l_lp"],ylab=prettynames["z_lp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$median_junk], pch=mypch[proportions$median_junk])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$median_junk=="lower_junk")),col="blue")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk=="lower_junk","z_lp"],proportions[proportions$median_junk=="lower_junk","l_lp"])
+    myr[1,"lower_junk"]=round(thiscor$estimate,3)
+    mylb[1,"lower_junk"]=round(thiscor$conf.int[1],3)
+    myhb[1,"lower_junk"]=round(thiscor$conf.int[2],3)
+    myn[1,"lower_junk"]=round(thiscor$parameter,3)
+    myp[1,"lower_junk"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+    abline(lm(proportions[,"z_lp"]~proportions[,"l_lp"],subset=c(proportions$median_junk!="lower_junk")),col="darkgreen")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk!="lower_junk","l_lp"],proportions[proportions$median_junk!="lower_junk","z_lp"])
+    myr[1,"higher_junk"]=round(thiscor$estimate,3)
+    mylb[1,"higher_junk"]=round(thiscor$conf.int[1],3)
+    myhb[1,"higher_junk"]=round(thiscor$conf.int[2],3)
+    myn[1,"higher_junk"]=round(thiscor$parameter,3)
+    myp[1,"higher_junk"]=round(thiscor$p.value,3)
+    
+
+    
+    # repeat whole for cp
+    
+    lims=range(c(proportions[,"z_cp"],proportions[,"l_cp"]))
+
+  plot(proportions[,"z_cp"]~proportions[,"l_cp"], xlab=prettynames["l_cp"],ylab=prettynames["z_cp"],
+       xlim=lims,ylim=lims,
+       col=mycols[proportions$median_junk], pch=mypch[proportions$median_junk])
+  lines(c(0,1),c(0,1),lty=2,col="darkgray")
+
+  abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$median_junk=="lower_junk")),col="blue")
+
+  #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk=="lower_junk","z_cp"],proportions[proportions$median_junk=="lower_junk","l_cp"])
+    myr[2,"lower_junk"]=round(thiscor$estimate,3)
+    mylb[2,"lower_junk"]=round(thiscor$conf.int[1],3)
+    myhb[2,"lower_junk"]=round(thiscor$conf.int[2],3)
+    myn[2,"lower_junk"]=round(thiscor$parameter,3)
+    myp[2,"lower_junk"]=round(thiscor$p.value,3)
+    
+
+  #repeat for higher_junk  
+    abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$median_junk!="lower_junk")),col="darkgreen")
+
+      #get cor properties
+  thiscor=cor.test(proportions[proportions$median_junk!="lower_junk","l_cp"],proportions[proportions$median_junk!="lower_junk","z_cp"])
+    myr[2,"higher_junk"]=round(thiscor$estimate,3)
+    mylb[2,"higher_junk"]=round(thiscor$conf.int[1],3)
+    myhb[2,"higher_junk"]=round(thiscor$conf.int[2],3)
+    myn[2,"higher_junk"]=round(thiscor$parameter,3)
+    myp[2,"higher_junk"]=round(thiscor$p.value,3)
+    
+
+```
+
+We investigated this hypothesis by calculating the proportion of their data labeled as "Junk" for each individual child.  There was no significant difference in the proportions of their data labeled as "Junk" for older children with Angelman Syndrome (M = `r round(junkXdiag$estimate["mean in group AngelmanSyndrome"],3)`) compared to the younger low risk children (M = `r round(junkXdiag$estimate["mean in group Low-RiskControl"],3)`): Welch's t(`r junkXdiag$parameter`) = `r round(junkXdiag$statistic,3)`, p = `r round(junkXdiag$p.value,3)`. We therefore collapsed across groups for this exploratory analysis, and split the 20 children using a median split on the proportion of their data labeled as "Junk". Results were similar across these two post-hoc subgroups. For Linguistic Proportion, the correlation across lab and Zooniverse data for the lower junk group was r(`r myn["lp","lower_junk"]`) = `r myr["lp","lower_junk"]`, CI [`r mylb["lp","lower_junk"]`,`r myhb["lp","lower_junk"]`], p=`r myp["lp","lower_junk"]`]; and for the higher junk group it was r(`r myn["lp","higher_junk"]`) = `r myr["lp","higher_junk"]`, CI [`r mylb["lp","higher_junk"]`,`r myhb["lp","higher_junk"]`], p=`r myp["lp","higher_junk"]`. For Canonical Proportion, the correlation across lab and Zooniverse data for the lower junk group was r(`r myn["cp","lower_junk"]`) = `r myr["cp","lower_junk"]`, CI [`r mylb["cp","lower_junk"]`,`r myhb["cp","lower_junk"]`], p=`r myp["cp","lower_junk"]`]; and for the higher junk group it was r(`r myn["cp","higher_junk"]`) = `r myr["cp","higher_junk"]`, CI [`r mylb["cp","higher_junk"]`,`r myhb["cp","higher_junk"]`], p=`r myp["cp","higher_junk"]`. Thus, it does not seem that a higher proportion of "Junk" judgments is an index of low quality data.
+
+
+Above, we concluded that derived metrics seem more promising than segment-level data. Notice that derived metrics do not require matching of clips (500 ms presented to Zooniverse participants) to segments (the original LENA^TM^ segments presented to laboratory participants). As a result, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but deriving our proportions for the Zooniverse data not from the segment-level composite, but rather the individual chunk-level annotations. 
+
+```{r bychunk-age, echo=F}
+read.csv("../Derived_Data/chunk_majority_agreement_1751.csv")->chunk
+bychild=table(chunk$Answer,chunk$ChildID)
+cans=bychild["Canonical",]
+noncans=bychild["Non-Canonical",]
+junk=bychild["Junk",]
+sum_bychild=table(chunk$ChildID)
+
+ling_prop=(cans+noncans)/(sum_bychild-junk)
+can_prop=cans/(cans+noncans)
+
+#check that they match before merging
+#demo_data$ChildID==names(ling_prop)
+#demo_data$ChildID==names(can_prop)
+
+props_bychild_chunk=cbind(ling_prop,can_prop,demo_data)
+colnames(props_bychild_chunk)[1:2]<-c("chi","ling_prop")
+
+z_lp_as=cor.test(props_bychild_chunk$ling_prop[props_bychild_chunk$Diagnosis=="AngelmanSyndrome"],props_bychild_chunk$Age[props_bychild_chunk$Diagnosis=="AngelmanSyndrome"])
+
+z_lp_lr=cor.test(props_bychild_chunk$ling_prop[props_bychild_chunk$Diagnosis!="AngelmanSyndrome"],props_bychild_chunk$Age[props_bychild_chunk$Diagnosis!="AngelmanSyndrome"])
+
+z_cp_as=cor.test(props_bychild_chunk$can_prop[props_bychild_chunk$Diagnosis=="AngelmanSyndrome"],props_bychild_chunk$Age[props_bychild_chunk$Diagnosis=="AngelmanSyndrome"])
+
+z_cp_lr=cor.test(props_bychild_chunk$can_prop[props_bychild_chunk$Diagnosis!="AngelmanSyndrome"],props_bychild_chunk$Age[props_bychild_chunk$Diagnosis!="AngelmanSyndrome"])
+```
+
+
+Regarding correlations with age, we found that the Linguistic Proportion was not strongly associated with age in the Angelman Syndrome group: r(`r z_lp_as$parameter`) = `r z_lp_as$estimate`, CI [`r z_lp_as$conf.int[1]`,`r z_lp_as$conf.int[2]`], p=`r z_lp_as$p.value`], but increased with age  in the low-risk control group: r(`r z_lp_lr$parameter`) = `r z_lp_lr$estimate`, CI [`r z_lp_lr$conf.int[1]`,`r z_lp_lr$conf.int[2]`], p=`r z_lp_lr$p.value`. Similarly, the Canonical Proportion did not exhibit the same pattern across the groups, with developmental decreases found among children with Angelman Syndrome r(`r z_cp_as$parameter`) = `r z_cp_as$estimate`, CI [`r z_cp_as$conf.int[1]`,`r z_cp_as$conf.int[2]`], p=`r z_cp_as$p.value`]; and developmental increases among low-risk control r(`r z_cp_lr$parameter`) = `r z_cp_lr$estimate`, CI [`r z_cp_lr$conf.int[1]`,`r z_cp_lr$conf.int[2]`], p=`r z_cp_lr$p.value`.
+
+```{r zoo-lab-chunk, echo=F}
+
+#create matrix to hold r results
+myr=matrix(NA,nrow=2,ncol=3)
+rownames(myr)<-c("lp","cp")
+colnames(myr)<-c("AS","LR","all")
+mylb=myhb=myn=myp=myr #this is an ugly way of creating 5 matrices
+
+proportions=proportions[order(proportions$ChildID),]
+
+  #get cor properties
+  thiscor=cor.test(props_bychild_chunk[props_bychild_chunk$Diagnosis=="AngelmanSyndrome","ling_prop"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_lp"])
+    myr[1,"AS"]=round(thiscor$estimate,3)
+    mylb[1,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[1,"AS"]=round(thiscor$conf.int[2],3)
+    myn[1,"AS"]=round(thiscor$parameter,3)
+    myp[1,"AS"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+
+
+      #get cor properties
+  thiscor=cor.test(props_bychild_chunk[props_bychild_chunk$Diagnosis!="AngelmanSyndrome","ling_prop"],proportions[proportions$Diagnosis!="AngelmanSyndrome","l_lp"])
+    myr[1,"LR"]=round(thiscor$estimate,3)
+    mylb[1,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[1,"LR"]=round(thiscor$conf.int[2],3)
+    myn[1,"LR"]=round(thiscor$parameter,3)
+    myp[1,"LR"]=round(thiscor$p.value,3)
+    
+#repeat for all cor
+    
+      thiscor=cor.test(props_bychild_chunk$ling_prop,proportions$l_lp)
+    myr[1,"all"]=round(thiscor$estimate,3)
+    mylb[1,"all"]=round(thiscor$conf.int[1],3)
+    myhb[1,"all"]=round(thiscor$conf.int[2],3)
+    myn[1,"all"]=round(thiscor$parameter,3)
+    myp[1,"all"]=round(thiscor$p.value,3)
+    
+    # repeat whole for cp
+
+
+  #get cor properties
+  thiscor=cor.test(props_bychild_chunk[props_bychild_chunk$Diagnosis=="AngelmanSyndrome","can_prop"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_cp"])
+    myr[2,"AS"]=round(thiscor$estimate,3)
+    mylb[2,"AS"]=round(thiscor$conf.int[1],3)
+    myhb[2,"AS"]=round(thiscor$conf.int[2],3)
+    myn[2,"AS"]=round(thiscor$parameter,3)
+    myp[2,"AS"]=round(thiscor$p.value,3)
+    
+
+  #repeat for LR  
+
+
+      #get cor properties
+  thiscor=cor.test(props_bychild_chunk[props_bychild_chunk$Diagnosis!="AngelmanSyndrome","can_prop"],proportions[proportions$Diagnosis!="AngelmanSyndrome","l_cp"])
+    myr[2,"LR"]=round(thiscor$estimate,3)
+    mylb[2,"LR"]=round(thiscor$conf.int[1],3)
+    myhb[2,"LR"]=round(thiscor$conf.int[2],3)
+    myn[2,"LR"]=round(thiscor$parameter,3)
+    myp[2,"LR"]=round(thiscor$p.value,3)
+    
+#repeat for all cor
+    
+      thiscor=cor.test(props_bychild_chunk$can_prop,proportions$l_cp)
+    myr[2,"all"]=round(thiscor$estimate,3)
+    mylb[2,"all"]=round(thiscor$conf.int[1],3)
+    myhb[2,"all"]=round(thiscor$conf.int[2],3)
+    myn[2,"all"]=round(thiscor$parameter,3)
+    myp[2,"all"]=round(thiscor$p.value,3)
+    
+ mycortab=rbind(mycortab,t(myr))
+rownames(mycortab)[4:6]<-paste("Chunks",rownames(t(myr)))
+
+```
+
+
+As for correlations between Zooniverse and laboratory-derived metrics, we observe very similar levels of correlation: Linguistic Proportion overall r(`r myn["lp","all"]`) = `r myr["lp","all"]`, CI [`r mylb["lp","all"]`,`r myhb["lp","all"]`], p=`r myp["lp","all"]`] between Linguistic Proportion by child from the Zooniverse and the lab annotators' data.  When we split by participant group, correlations remain high: for Angelman Syndrome r(`r myn["lp","AS"]`) = `r myr["lp","AS"]`, CI [`r mylb["lp","AS"]`,`r myhb["lp","AS"]`], p=`r myp["lp","AS"]`]; low-risk control r(`r myn["lp","LR"]`) = `r myr["lp","LR"]`, CI [`r mylb["lp","LR"]`,`r myhb["lp","LR"]`], p=`r myp["lp","LR"]`]. As for Canonical Proportion overall r(`r myn["cp","all"]`) = `r myr["cp","all"]`, CI [`r mylb["cp","all"]`,`r myhb["cp","all"]`], p=`r myp["cp","all"]`; Angelman Syndrome: r(`r myn["cp","AS"]`) = `r myr["cp","AS"]`, CI [`r mylb["cp","AS"]`,`r myhb["cp","AS"]`], p=`r myp["cp","AS"]`];  low-risk control infants r(`r myn["cp","LR"]`) = `r myr["cp","LR"]`, CI [`r mylb["cp","LR"]`,`r myhb["cp","LR"]`], p=`r myp["cp","LR"]`.
+
+
+Since all of these results are very similar to those obtained when first matching clips to segments, we conclude that in the future this step may not be necessary. Instead, researchers can derive linguistic and Canonical Proportions directly from citizen scientists' clip level judgements [which was in fact what @cychosz2019canonical did].
+
+
+```{r downsample}
+
+#we start from the data base that has all the info
+nsegs=data.frame(table(data_all$ChildID))
+colnames(nsegs)<-c("ChildID","nsegs")
+
+merge(nsegs,demo_data)->nsegs
+nseg_t=t.test(nsegs$nsegs~nsegs$Diagnosis)
+
+resampling=matrix(NA,nrow=50,ncol=6)
+colnames(resampling)<-c("lp_r_all","lp_r_as","lp_r_lr","cp_r_all","cp_r_as","cp_r_lr")
+for(i in 1:50){
+  sel_seg=NULL
+  for(thischi in levels(data_all$ChildID)) sel_seg<-c(sel_seg,as.character(data_all$segmentId_DB[sample(data_all$segmentId_DB[data_all$ChildID==thischi],100)]))
+  
+  sampling=data_all[as.character(data_all$segmentId_DB) %in% as.character(sel_seg),]
+  
+  #get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
+  ztab=table(sampling$ChildID,sampling$Zoon_classif)
+  z_lp=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
+  z_cp=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
+
+  ltab=table(sampling$ChildID,sampling$lab)
+  l_lp=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
+  l_cp=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
+  
+  thistab=cbind(demo_data,z_lp,z_cp,l_lp,l_cp)
+  
+  resampling[i,"lp_r_all"]=cor.test(thistab$z_lp,thistab$l_lp)$estimate
+  resampling[i,"lp_r_as"]=cor.test(thistab$z_lp[thistab$Diagnosis=="AngelmanSyndrome"],thistab$l_lp[thistab$Diagnosis=="AngelmanSyndrome"])$estimate
+  resampling[i,"lp_r_lr"]=cor.test(thistab$z_lp[thistab$Diagnosis!="AngelmanSyndrome"],thistab$l_lp[thistab$Diagnosis!="AngelmanSyndrome"])$estimate
+
+   resampling[i,"cp_r_all"]=cor.test(thistab$z_cp,thistab$l_cp)$estimate
+  resampling[i,"cp_r_as"]=cor.test(thistab$z_cp[thistab$Diagnosis=="AngelmanSyndrome"],thistab$l_cp[thistab$Diagnosis=="AngelmanSyndrome"])$estimate
+  resampling[i,"cp_r_lr"]=cor.test(thistab$z_cp[thistab$Diagnosis!="AngelmanSyndrome"],thistab$l_cp[thistab$Diagnosis!="AngelmanSyndrome"])$estimate
+ }
+myr=colMeans(resampling)
+mycortab=rbind(mycortab,cbind(myr[c("lp_r_as" ,"lp_r_lr","lp_r_all")],myr[c("cp_r_as" ,"cp_r_lr","cp_r_all")]))
+rownames(mycortab)[7:9]<-c("100 seg AS","100 seg LR","100 seg all")
+round(mycortab,3)->mycortab
+
+resampling=data.frame(resampling)
+```
+
+Next, we looked at whether having more segments from each child may lead to more reliable metrics.  We observed a non-significant trend [t(`r nseg_t$parameter`)=`r nseg_t$estimate`] for lower number of segments in the Angelman Syndrome group (mean `r nseg_t$estimate[1]`, range `r min(nsegs$nsegs[nsegs$Diagnosis=="AngelmanSyndrome"])`-`r max(nsegs$nsegs[nsegs$Diagnosis=="AngelmanSyndrome"])`) than among low-risk control infants (mean `r nseg_t$estimate[2]`, range `r min(nsegs$nsegs[nsegs$Diagnosis!="AngelmanSyndrome"])`-`r max(nsegs$nsegs[nsegs$Diagnosis!="AngelmanSyndrome"])`), likely because of the lower volubility of the former children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications [CITE MEG]. We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data is extracted from each child by sampling 100 segments from all children [following CITE MEG]. We randomly sampled 100 segments from each child's data, and recalculated the linguistic and Canonical Proportions based only on these associated judgments. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample. The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table XX), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, particularly in some groups of infants, 100 segments may not be sufficient to capture the child's linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was [`r min(resampling$lp_r_all)`,`r max(resampling$lp_r_all)`]; for the Angelman Syndrome group [`r min(resampling$lp_r_as)`,`r max(resampling$lp_r_as)`]; for the low-risk group [`r min(resampling$lp_r_lr)`,`r max(resampling$lp_r_lr)`].  For Canonical Proportion, the range of correlations found for all infants was [`r min(resampling$cp_r_all)`,`r max(resampling$cp_r_all)`]; for the Angelman Syndrome group [`r min(resampling$cp_r_as)`,`r max(resampling$cp_r_as)`]; for the low-risk group [`r min(resampling$cp_r_lr)`,`r max(resampling$cp_r_lr)`].
+
+```{r tab-cors, results="as.is"}
+colnames(mycortab)<-c("Linguistic Proportion","Canonical Proportion")
+kable(mycortab,cap="Pearson correlation coefficients across metrics derived from laboratory and Zooniverse annotations in the Angelman Syndrome (AS) group data, low-risk (LR) group data, or for all children together (all) in three ways: All seg indicates that Zooniverse annotations at the clip level were first combined at the segment level; Chunks that they were analyzed directly at the clip level. Both of these are based on all the data. In contrast, rows labeled 100 seg indicate that laboratory- and Zooniverse-derived metrics were based on only 100 segments (median over 50 runs in which 100 segments were randomly selected from each child).")
+```
+
+
+<!-- - look at whether kids who have a high "junk" proportion according to Zooniverse  -->
+<!--      - have lower levels of concordance across Zoo coders -->
+
+
+<!-- - take all 5 Zoo judgments or 3 or 1 (may need to run the latter two a couple of times to check for potential variance -- if variance is small, we'll just say so, if it's large then we'll have to write a loop and report CIs) -->
+
+## Discussion
+
+In the present study we assessed the extent to which child vocalizations from LENA^TM^ daylong recordings can be accurately described based on classifications collected using the citizen science platform Zooniverse. Our recordings came from children diagnosed with a language disorder, as well as low-risk controls, and included a range of different ages. Excerpts of these recordings had previously been annotated by trained experts in the lab, and served as the "gold standard".
+
+In descriptive terms, we found that category frequency was similar across laboratory and citizen science annotations. Correlations between age and our two child-level metrics revealed different developmental patterns between our sample of older children with a diagnosis of Angelman Syndrome and younger low-risk controls. Given that the two groups of children differ on both of these features (age and diagnosis), we cannot empirically tease apart these two differences. Nonetheless, inspection of Figure 2 suggests different interpretations for the two derived metrics. Overall, the pattern for Linguistic Proportion is compatible with a non-linear trajectory common to the two groups, whereby the Linguistic Proportion increases rapidly up to 20 months, and hovers around 90-100% thereafter. In this case, the lack of correlation with age in the Angelman Syndrome group suggests that there is little systematic variance in this metric after 20 months of age. In contrast, the two groups seem to differ in their trajectory for Canonical Proportion, with rapid increases up to 20 months in the low-risk group, and slower decreases among children in the Angelman Syndrome group. 
+
+Next, we looked at agreement between laboratory and Zooniverse annotation at the level of individual segments. We found that some categories had high precision and recall -- notably Non-canonical segments were detected quite accurately, and to a lesser extent the same was true for Canonical segments. This is interesting because it suggests that Zooniverse annotations may be trusted particularly for detecting these two types of speech-like segments.
+
+In other cases, precision was fairly high but recall was lower. This was the case of the "Junk/Don't mark" category. Higher precision and low recall indicates that when Zooniverse annotations return a "Junk" judgement, this tends to be correct, but Zooniverse annotations may not detect all elements labeled as "Don't mark" in the laboratory. Inspection of confusion matrices and overall frequencies suggest that such a pattern of errors could be due to citizen scientists accepting more clips (i.e., using the "junk" category less) than laboratory annotators, who have access to the whole vocalization.  It is also plausible, on the other hand, that lab annotators are more "picky" with the data, and tend to reject clips (tag them as "Don't mark"). Indeed, laboratory coders were instructed to be  sensitive since the aim was also to study acoustic characteristics of the segments (which is unrelated to the current project), and therefore they would use "Don't mark" if there was any noise or verlapping speech that would potentially affect acoustic analyses.
+
+Both Crying and Laughing showed moderate to good recall, but low precision. This means that a high proportion of segments detected as these two categories in the lab can be classified in the appropriate category by Zooniverse annotators, but Zooniverse annotators also put into these categories many segments that lab annotators classified in a different manner. Most saliently, there is a problematic level of confusion between Crying and Non-Canonical, whereby lab-detected Crying was almost as likely to be classified as such or Non-canonical in Zooniverse (the recall proportion was 49 and 47% respectively), and even worse, 55% of the segments Zooniverse annotators classified as Crying were actually Non-Canonical according to lab annotations. This is likely due to the fact that lab annotators had access to the whole segment, and could even listen to the context of that segment, so they could accurately interpret a segment as crying. Thus, it is possible that additional analyses, using for instance pitch or duration characteristics at the level of the whole segment rather than the clip could improve classification performance, but for the time being, we cannot recommend Zooniverse annotations to identify crying bouts. 
+
+As for laughing, the recall is quite good but precision is low with confusion involving Junk and Non-Canonical to similar extents. We are tentative in our interpretation of this result because the category was very sparsely represented, with barely 200 segments classified as Laughing in the whole data set. We thus recommend additional work, although we expect that perhaps there will be a similar problem (and solution) as indicated for Crying, whereby determination of Laughing versus Non-Canonical will require inspection of segment-level properties.
+
+Turning now to the child-level analyses, we were particularly interested in derived metrics because this is more typically the goal of such analyses, for instance to study potential individual or group differences, or investigate the impact of an intervention. Our results show that, despite agreement variation at the level of the segment, derived metrics were highly correlated across laboratory and Zooniverse data, meaning that variability in precision and recall did not substantially impact key outcome variables.  Errors only seemed systematic for the Linguistic Proportion (and not for Canonical Proportion), and they were due to lower Linguistic Proportions from Zooniverse than laboratory data. This is uncertainly due to the confusion between Crying and Non-Canonical, with a substantial part of Crying segments being classified as Non-Canonical by Zooniverse annotators. Nonetheless, since these errors were systematic across infants, they do not affect the study of group or individual variation.
+
+Our exploratory analyses then dug into some methodological aspects of our data. We found that, although individuals vary widely in terms of what proportion of their data is classified as Junk by Zooniverse annotators, this is not a sign that their data as a whole cannot be trusted, with similar levels of correlations between laboratory- and Zooniverse-derived metrics across median groups based on proportion of their data classified as Junk. 
+
+Next, we found that more data led to more reliable measurements: Specifically, our correlations based on 300-500 segments per child were markedly higher than those based on 100 segments per child, particularly when looking at our low-risk, younger participants. It is important to note that an advantage of Zooniverse, compared to laboratory annotations, is that it is easier to scale up: More data from each individual child can be annotated this way, which will help countering noise. 
+
+
+In sum, we believe these data show that young children's vocalizations can be faithfully described by relying on the judgments of Zooniverse's citizen scientists, particularly when the goal is to describe vocalizations at a broader level than individual clips. It is important to note that from a methodological point of view, the use of crowdsourcing is not merely a question of being an ecological technique, but it can also offer benefits in the area of scientific rigor and reproducibility. As previously mentioned in the Introduction section, Zooniverse offers both an automated system of data handling as well as an enormous pool of users: access to a large-scale group of blinded participants can in itself help researchers overcome the methodological compromises that sometimes lead to biased results. Additionally, crowd-sourcing and open-science frameworks can come together to encourage replication of existing work: open-source software, shared data and citizen science platforms would make it possible, and actually easy, to run identical studies and evaluate research results independently.
+
+### Further research directions
+
+These findings open up a new, exciting avenue for future research. Our pipeline to upload data on Zooniverse is scalable and quickly adapted to new datasets, including data on infants of different ages, learning different languages, or living in environments with different acoustic properties (e.g., rural versus urban environments). This means large existing datasets of daylong recordings can be reliably annotated in an ecological way using citizen science (ref on existing datasets). 
+
+We believe additional research would be welcome on the two measures we used to describe children’s linguistic productions: Linguistic Proportion and Canonical Proportion. Linguistic Proportion has not been investigated extensively in previous research, and correlations with age were weaker than those for Canonical Proportion. We hope additional research is devoted to further investigating this measure as a child-level descriptor, since it may be more relevant for other disorders that are related to emotional disorders (REF REF). Additionally, while Canonical Proportion has been studied in much previous work, we believe further research is necessary using larger scales (e.g., sampling from daylong recordings to have a more ecological picture of the child, REF; increasing the sheer number of children studied, to have sufficient power to detect effects) and with broader coverage (notably including children growing up in a broad range of languages and cultures, REF), to make sure that assumptions regarding cross-linguistic and maturational universality are justified (REF).
+
+Assuming these child-level metrics continue to be supported by such additional data, it would be interesting for future investigations to expand the analysis of Linguistic Proportion and Canonical Proportion to recover differences and similarities in language development between low-risk children and children with disorders other than Angelman Syndrome. An extensive body of work has found that children with autism spectrum disorders experience language delays (Fasolo, Majorano, & D’Odorico, 2008; Lang et al., 2019; Patten et al., 2014; Stoel-Gammon, 1989). One caveat is that these studies used CBO, which requires recordings to be gathered periodically in order to be determined. 
+
+It is also important to note that work on non-typically developing children poses in itself some challenges. Our data contained a lower number of vocalizations for children diagnosed with Angelman Syndrome, as they tend to produce fewer vocalizations than low-risk controls REF. Notice this was the case even in our data, where we selected much younger low-risk control childrens as the comparison point. 
+
+<!-- AC removed: Additionally, we found an imbalance between the quantity of clips assigned to each category. Further research should look at validating the results of our approach by oversampling data from non-typically developing children, so as to overcome both the risk of lack of data in some categories, and the imbalance in the quantity of vocalizations between groups. -->
+
+The lack of age effects in AS seems like the bigger "challenge" - if the goal is to use this information to inform how children are developing, are these the right metrics for that population? Longitudinal work within AS may be needed to track the "natural history" of vocalizations to better contextualize how these metrics might be relevant or useful. For example, there is interest in using naturalistic recordings as outcome measures for clinical/drug trials. Are we seeing enough variability in AS to assume that these metrics could "budge" in response to a treatment? It seems we are seeing variability across kids, which is promising. We are also seeing agreement across coders in AS files, which is also important. Next questions would be whether these metrics change within individuals, and whether rates of change may be a candidate for tracking treatment. Graphs that show the two key variables across groups and age may help inform these questions.
+
+
+Finally, broader generalizations of our technique could be of interest to readers of this paper. Any researcher is able to undergo the procedure to create Zooniverse projects. For instance, a separate pipeline could be set up to annotate potentially disordered speech by older adults at risk of, or diagnosed with, neurodegenerative diseases. Although it would be important to similarly validate such annotations, we believe there is strong promise for such tasks, because many neurodegenerative disorders affect local aspects of the speech, which are detected at the syllable level. In contrast, tasks that require more speech or audio context may not be well suited to citizen science platforms, because they would require playing longer clips, which may reveal identifying or sensitive information. Although citizen scientists themselves are well-intentioned, the platform could be used by others who want to exploit the system for other means.
+
+
+## Conclusion
+
+In this study we validated the quality of annotations obtained through a citizen science platform, Zooniverse, as compared to a gold standard of human expert annotators. We analyzed the correspondence between annotations at the individual clip level, and the individual-child level, using Canonical Proportion and Linguistic Proportion as descriptors. We found a moderate to good accuracy in the first, and strong positive correlations in the latter. We can conclude that citizen scientists are a reliable source of fast and ecological annotation of speech data, particularly when results are combined into child-level descriptors. Our study suggests that the same methodology may be applied to several research questions in the study of language acquisition and language disorders. This finding is particularly welcome in an era when wearables open new avenues for studying human behavior and development in an ecological manner.
+
+
+\newpage
+
+# Acknowledgements 
+
+We are grateful to ...
+
+\newpage
+
+
+
+MOVE FIGURE 1 HERE
+
+\newpage
+
+
+MOVE FIGURE 2 HERE
+
+etc
+
+# References
+
+<!-- These lines ensure references are set with hanging indents in PDF documents; they are ignored in Word. -->
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
