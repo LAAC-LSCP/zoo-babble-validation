@@ -1,14 +1,9 @@
 ---
-title: "Sup mat for JSLHR version"
-date: "2020-10-17"
+title: "Supplementary materials to: Describing vocalizations in young children: A big data approach through citizen science annotations"
 output:
   pdf_document:
     toc: yes
     toc_depth: 3
-  html_document:
-    df_print: paged
-    toc: yes
-    toc_depth: '3'
 ---
 
 
@@ -28,12 +23,8 @@ dodiv=function(x) x/sum(x, na.rm=T)
 
 ## History:
 
-- 2020-10-17 first version
+- 2020-11-03 first version
 
-
-## TODO:
-
-- so much!
 
 ## Read data in
 
@@ -66,7 +57,8 @@ data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
 
 ## Correspondence between lab & zooniverse annotation at the level of segments
 
-Here we look at to what extent zooniverse and lab annotations match at the level of individual segments. Each data point is one segment (one "vocalization").
+
+Here we look at to what extent zooniverse and lab annotations match at the level of individual segments. Each data point is one segment (using LENA segmentation). Unlike in the main paper, here we will show results before applying the ordered rules that give prevalence to canonical, non-canonical, laughing, crying (in that order). 
 
 
 ```{r}
@@ -133,7 +125,7 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 ```
 
 
-## repeat collapsing
+## Collapse across "mixed"
 
 
 ```{r}
@@ -164,60 +156,10 @@ data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing"]<-"Non-Can
 data_all$Zoon_classif=factor(data_all$Zoon_classif)
 data_all$lab=factor(data_all$lab)
 sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
-gac(data = sample_data, kat = 5, weight = c("unweighted"),
-    conf.level = 0.95)
-mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
-conf_tab=mycf$table
-# this package uses sensitivity & specificity
-#Sensitivity=recall
-#Specificity=precision
-mycf
+
 ```
 
-```{r prec2}
-pdf("../Results/precision_final.pdf",height=10,width=10)
-colsums=colSums(conf_tab)
-my_conf_tab=conf_tab
-for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
-colSums(my_conf_tab)
-prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"pr"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","pr")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(pr)), colour = "white") +
-  geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Precision")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-```{r recall2}
-pdf("../Results/recall_final.pdf",height=10,width=10)
-prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
-prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
-colnames(prop_cat)[3]<-"rec"
-data.frame(conf_tab)->stall
-stall$id=paste(stall$Lab,stall$Zooniverse)
-stall=merge(stall,prop_cat[c("id","rec")])
-ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
- geom_tile(aes(fill= rescale(rec)), colour = "white") +
-  geom_text(aes(label = paste(round(rec),"%")), vjust = -1,size=8) +
-  geom_text(aes(label = Freq), vjust = 1,size=8) +
-  scale_fill_gradient(low = "white", high = "red", name = "Proportion") +
-     theme(legend.position = "none") +
-  xlab("Zooniverse") + ylab("Lab") +
-  ggtitle("Recall")+theme(text = element_text(size=20),
-        axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
+## Separate confusion matrices for Angelman syndrome children
 
 ```{r}
 data_as_td<-left_join(data_all,demo_data,on="ChildID")
@@ -227,8 +169,8 @@ mycf=confusionMatrix(data_AS$lab, data_AS$Zoon_classif, dnn = c("Lab","Zoonivers
 conf_tab=mycf$table
 mycf
 ```
+
 ```{r prec2AS}
-pdf("../Results/precision_AS.pdf",height=10,width=10)
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
@@ -248,12 +190,11 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   xlab("Zooniverse") + ylab("Lab") +
   ggtitle("Precision")+theme(text = element_text(size=20),
         axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
+
 ```
 
 
 ```{r recall2_AS}
-pdf("../Results/recall_AS.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -269,8 +210,10 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   xlab("Zooniverse") + ylab("Lab") +
   ggtitle("Recall")+theme(text = element_text(size=20),
         axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
+
 ```
+
+## Separate confusion matrices with just the low risk controls
 
 ```{r}
 # CM with just TD kids
@@ -281,7 +224,6 @@ mycf
 ```
 
 ```{r prec3AS}
-pdf("../Results/precision_TD.pdf",height=10,width=10)
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
 for(i in 1:5) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
@@ -301,12 +243,11 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   xlab("Zooniverse") + ylab("Lab") +
   ggtitle("Precision")+theme(text = element_text(size=20),
         axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
+
 ```
 
 
 ```{r recall3}
-pdf("../Results/recall_TD.pdf",height=10,width=10)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
 colnames(prop_cat)[3]<-"rec"
@@ -322,216 +263,5 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
   xlab("Zooniverse") + ylab("Lab") +
   ggtitle("Recall")+theme(text = element_text(size=20),
         axis.text.x = element_text(angle=90, hjust=1))
-dev.off()
-```
-
-## Child level descriptors
-
-Although there may be errors at the level of the segment, what we really care about is whether Zooniverse annotations give a reliable image of the child's individual development. This is what we look at in this section. In all of these graphs, red points correspond to children diagnosed with Angelman Syndrome, black for low-risk control.
-
-```{r prepare data by child}
-#get the ns by child, then calculate the linguistic ratio & canonical ratio, separately for zooniverse & lab
-ztab=table(data_all$filename,data_all$Zoon_classif)
-z_lr=rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
-z_cr=ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
-ltab=table(data_all$filename,data_all$lab)
-l_lr=rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
-l_cr=ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
-#put all the ratios together
-if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) ratios=cbind(rownames(ztab),z_lr,z_cr,l_lr,l_cr) else print("oops this code needs to be more complex because we don't have the same kids for the two ratios")
-colnames(ratios)[1]<-"filename"
-
-#ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
-#improvement: now we merge with a demo data tab, but note this is merged with child id, so the problem of multiple recs per child is still there
-
-# Created demo_data with filenames. Use filenames instead of childIDs to merge ratios and demo data.
-
-merge(ratios,demo_data_fn,by="filename")->ratios
-colnames(ratios)[dim(ratios)[2]]<-"Age"
-#cbinding results in text, so we numerize the ratios
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) ratios[,thisvar]=as.numeric(as.character(ratios[,thisvar]))
-summary(ratios)
-```
-
-
-## Correlations with age
-
-We first look generally at two measures that have been found to relate to age:
-
-- linguistic ratio = ("Canonical"+"Non-Canonical")/"All vocalizations" (i.e. we remove junk)
-- canonical ratio = "Canonical"/("Canonical"+"Non-Canonical") (i.e. we remove junk + non-linguistic vocalizations)
-
-TODO
-
-- make margins smaller
-
-- remove title repetition (age only at the bottom)
-
-
-```{r corage}
-
-prettynames=c("Linguistic Ratio (Zooniverse)","Canonical Ratio (Zooniverse)",
-             "Linguistic Ratio (Lab)","Canonical Ratio (Lab)" )
-names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
-mycols=c("black","red")
-names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
-mypch=c(4,20)
-names(mypch)<-c("Low-RiskControl","AngelmanSyndrome")
-
-jpeg("../Results/corage.jpg",width=20,height=20,units="cm",res=300)
-layout(matrix(c(1:4), 2, 2, byrow = F))
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
-
-  plot(ratios[,thisvar]~ratios$Age, pch=mypch[ratios$Diagnosis],xlab="Age (months)",ylab=prettynames[thisvar],
-       col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,thisvar]~ratios$Age,subset=c(ratios$Diagnosis=="AngelmanSyndrome")),col="black")
-  myr=paste0("r=",round(cor.test(ratios[ratios$Diagnosis=="AngelmanSyndrome",thisvar],ratios$Age[ratios$Diagnosis=="AngelmanSyndrome"])$estimate,3))
-  text(mean(ratios$Age[ratios$Diagnosis=="AngelmanSyndrome"]),mean(ratios[ratios$Diagnosis=="AngelmanSyndrome",thisvar]),myr,col="black")
-    abline(lm(ratios[,thisvar]~ratios$Age,subset=c(ratios$Diagnosis!="AngelmanSyndrome")),col="red")
-    myr=paste0("r=",round(cor.test(ratios[ratios$Diagnosis!="AngelmanSyndrome",thisvar],ratios$Age[ratios$Diagnosis!="AngelmanSyndrome"])$estimate,3))
-    text(mean(ratios$Age[ratios$Diagnosis!="AngelmanSyndrome"]),mean(ratios[ratios$Diagnosis!="AngelmanSyndrome",thisvar]),myr,col="red")
-}
-dev.off()
-```
-
-## Correlations across zooniverse and lab
-
-But the key thing for us: Are Zooniverse annotations describing children similar to lab annotations? The answer is clearly yes.
-
-TODO:
-
-- add code to print out the results paragraphs
-- change figure generation to have lines fitted to each group
-
-```{r corlab-zoo}
-#Ling ratio
-pdf("../Results/ling_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]))
-  myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
-  plot(ratios[,"z_lr"]~ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]))
-  lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-  #CR
-pdf("../Results/can_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_cr"],ratios[,"l_cr"]))
-    myr=round(cor.test(ratios[,"z_cr"],ratios[,"l_cr"])$estimate,3)
-  plot(ratios[,"z_cr"]~ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]),col="darkgray")
-    lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
 
 ```
-
-
-
-```{r regmod}
-lin_mod=lm(z_lr~l_lr*Diagnosis*Age,data=ratios)
-summary(lin_mod)
-plot(lin_mod)
-```
-
-## Code junkyard
-
-This is redundant code
-
-
-Different pdfs for diff groups
-
-```{r corage2, eval=F}
-prettynames=c("AS Linguistic Ratio (Zooniverse)","AS Canonical Ratio (Zooniverse)",
-             "AS Linguistic Ratio (Lab)","AS Canonical Ratio (Lab)" )
-names(prettynames)<-c("z_lr","z_cr","l_lr","l_cr")
-
-AS_ratios<-subset(ratios, Diagnosis=="AngelmanSyndrome")
-TD_ratios<-subset(ratios, Diagnosis=="Low-RiskControl")
-
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
-  myr=round(cor.test(AS_ratios[,thisvar],AS_ratios$Age)$estimate,3)
-  plot(AS_ratios[,thisvar]~AS_ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr))
-  abline(lm(AS_ratios[,thisvar]~AS_ratios$Age))
-  }
-```
-
-
-
-```{r corage3, eval=F}
-prettynames=c("TD Linguistic Ratio (Zooniverse)","TD Canonical Ratio (Zooniverse)",
-             "TD Linguistic Ratio (Lab)","TD Canonical Ratio (Lab)" )
-for(thisvar in c("z_lr","z_cr","l_lr","l_cr")) {
-  myr=round(cor.test(TD_ratios[,thisvar],TD_ratios$Age)$estimate,3)
-  plot(TD_ratios[,thisvar]~TD_ratios$Age, pch=20,xlab="Age (months)",ylab=prettynames[thisvar],main=paste0("r=",myr))
-  abline(lm(TD_ratios[,thisvar]~TD_ratios$Age))
-  }
-```
-
-
-
-```{r corlab-zoo2, eval=F}
-#Ling ratio
-pdf("../Results/td_ling_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"]))
-  myr=round(cor.test(TD_ratios[,"z_lr"],TD_ratios[,"l_lr"])$estimate,3)
-  plot(TD_ratios[,"z_lr"]~TD_ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[TD_ratios$Diagnosis])
-  abline(lm(TD_ratios[,"z_lr"]~TD_ratios[,"l_lr"]))
-  lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-  #CR
-pdf("../Results/td_can_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"]))
-    myr=round(cor.test(TD_ratios[,"z_cr"],TD_ratios[,"l_cr"])$estimate,3)
-  plot(TD_ratios[,"z_cr"]~TD_ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[TD_ratios$Diagnosis])
-  abline(lm(TD_ratios[,"z_cr"]~TD_ratios[,"l_cr"]),col="darkgray")
-    lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-```
-
-```{r corlab-zoo3, eval=F}
-#Ling ratio
-pdf("../Results/AS_ling_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"]))
-  myr=round(cor.test(AS_ratios[,"z_lr"],AS_ratios[,"l_lr"])$estimate,3)
-  plot(AS_ratios[,"z_lr"]~AS_ratios[,"l_lr"], pch=20,xlab=prettynames["l_lr"],ylab=prettynames["z_lr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[AS_ratios$Diagnosis])
-  abline(lm(AS_ratios[,"z_lr"]~AS_ratios[,"l_lr"]))
-  lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-  #CR
-pdf("../Results/AS_can_rat_z_vs_l_final.pdf",height=5,width=5)
-lims=range(c(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"]))
-    myr=round(cor.test(AS_ratios[,"z_cr"],AS_ratios[,"l_cr"])$estimate,3)
-  plot(AS_ratios[,"z_cr"]~AS_ratios[,"l_cr"], pch=20,xlab=prettynames["l_cr"],ylab=prettynames["z_cr"],main=paste0("r=",myr),
-       xlim=lims,ylim=lims,
-       col=mycols[AS_ratios$Diagnosis])
-  abline(lm(AS_ratios[,"z_cr"]~AS_ratios[,"l_cr"]),col="darkgray")
-    lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-```
-
-
-combined pdf
-
-```{r , eval=F}
-#COMBINED to save space
-pdf("../Results/combined_final.pdf",height=5,width=5)
-lims=range(c(ratios[,"z_lr"],ratios[,"l_lr"]),c(ratios[,"z_cr"],ratios[,"l_cr"]))
-  #myr=round(cor.test(ratios[,"z_lr"],ratios[,"l_lr"])$estimate,3)
-  plot(ratios[,"z_lr"]~ratios[,"l_lr"],xlab="Laboratory annotations",ylab="Zooniverse annotations",
-       xlim=lims,ylim=lims,
-       pch=20,col=mycols[ratios$Diagnosis])
-    points(ratios[,"z_cr"]~ratios[,"l_cr"], pch=2, col=mycols[ratios$Diagnosis])
-  abline(lm(ratios[,"z_cr"]~ratios[,"l_cr"]))
-  abline(lm(ratios[,"z_lr"]~ratios[,"l_lr"]),lty=3)
- # lines(c(0,1),c(0,1),lty=2,col="darkgray")
-dev.off()
-```
-
