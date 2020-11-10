@@ -7,8 +7,8 @@ import json
 #This script creates a dictionary file in json format with mapping from 500ms chunks to Lab annotation segments
 
 
-result_final="/Users/chiarasemenzin/Desktop/LSCP/SLT/result_final_lisa.csv"  #file with segment info and lab classifications
-result_zoon="/Users/chiarasemenzin/Desktop/LSCP/SLT/merged_metadata.csv"  #metadata for zooniverse clips
+result_final="../metadata/result_final_lisa.csv"  #file with segment info and lab classifications
+result_zoon="../metadata/metadata_all_PU.csv"  #metadata for zooniverse clips
 
 
 # Segment to timestamp

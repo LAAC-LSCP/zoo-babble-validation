@@ -7,9 +7,11 @@ print("Started.")
 # define paths to your existing zooniverse classifications and metadata locations
 # These are the files you get as output from the Jupyter Notebook convert_zooniverse.ipynb
 
-classifs=pd.read_csv("/metadata/zooniverse_data_all_final.csv")
-metadata=pd.read_csv("/metadata/metadata_all_PU.csv",sep=',')
-filename_links=pd.read_csv("/metadata/filename_links.csv")
+classifs=pd.read_csv("../zooniverse_classifications/zooniverse_data_all_final.csv")
+metadata=pd.read_csv("../metadata/metadata_all_PU.csv",sep=',')
+filename_links=pd.read_csv("../metadata/filename_links.csv")
+
+
 #first_class=pd.read_csv("/Users/chiarasemenzin/Desktop/LSCP/experiment/results/lwl_results/first_classifications_last.csv")
 #classifs=pd.read_csv("/Users/chiarasemenzin/Desktop/zoon_metadata/classifs/zooniverse_class_june.csv")
 #metadata_phonses = pd.read_csv("/Users/chiarasemenzin/Desktop/zoon_metadata/metadata-phonses-merged.csv")
