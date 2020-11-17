@@ -12,8 +12,10 @@ library(caret)
 
 ## Read data in
 
+NOTE: This section cannot be reproduced because it requires access to data that haven't been shared.
+
 ```{r read-data,eval=F}
-read.csv("../Derived_Data/result_final_lisa.csv")->metadata
+read.csv("result_final_lisa.csv")->metadata
 metadata[1,]
 
 csvs=dir("../Raw_Data/its_to_csv/",pattern="csv")
@@ -59,7 +61,7 @@ for(thisits in levels(metadata$filename)){
     
   } else print(paste(thisits,"not found"))
 }
-write.csv(all_segments,"../Derived_Data/LENA_type_lab.csv",row.names = F)
+write.csv(all_segments,"LENA_type_lab.csv",row.names = F)
 ```
 
 ## Correspondence between LENA & lab annotation at the level of segments
@@ -69,7 +71,7 @@ Here we look at to what extent LENA and lab annotations match at the level of in
 
 ```{r}
 
-read.csv("../Derived_Data/LENA_type_lab.csv")->all_segments
+read.csv("LENA_type_lab.csv")->all_segments
 
 ## NOOOOOOOTE !!!! REMOVING Num_Agreement < 2
 all_segments=all_segments[all_segments$Num_Agreement>=2,]

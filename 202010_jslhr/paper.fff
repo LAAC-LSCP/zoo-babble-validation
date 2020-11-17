@@ -1,0 +1,45 @@
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{zooniverse-pufig.pdf}
+\caption{\label{fig:fig-zoo}Screen captures of the 6 stages of the tutorial, three of which are shown here: The initial explanation of the trial, examples of canonical vocalizations, and the classification choice the user needed to make; as well as the Field Guide, which remained accessible on the right of the screen throughout the session, and which allowed users to revise examples of the different categories.}
+\end{figure*}
+\efloatseparator
+ 
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{paper_files/figure-latex/fig-corage-1.pdf}
+\caption{\label{fig:fig-corage}Correlations between child-level descriptors and age as a function of metric (Linguistic Proportion in the top row, Canonical Proportion in the bottom row), annotation method, and child group (red=low-risk, and black= Angelman syndrome).}
+\end{figure*}
+\efloatseparator
+ 
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{paper_files/figure-latex/fig-prec-rec-1.pdf}
+\caption{\label{fig:fig-prec-rec}Number of segments as a function of their majority label from laboratory annotations (rows) versus Zooniverse annotations (columns). Percentages (and shading) indicate precision (left) and recall (right). For precision, the percentage indicates what percentage of the segments that have a given majority label according to Zooniverse data are attributed a given label in Lab data (i.e., columns add up to 100\%). For recall, the percentage indicates what percentage of the segments that have a given majority label according to Lab data are attributed a given label in Zooniverse data (i.e., rows add up to 100\%).}
+\end{figure*}
+\efloatseparator
+ 
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{paper_files/figure-latex/fig-corlab-zoo-1.pdf}
+\caption{\label{fig:fig-corlab-zoo}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of child group (red=low-risk, and black=Angelman syndrome).}
+\end{figure*}
+\efloatseparator
+ 
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
+\includegraphics{paper_files/figure-latex/fig-cor-Junk-1.pdf}
+\caption{\label{fig:fig-cor-Junk}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of whether children's Junk proportion was higher or lower than the median for all children (blue=lower, and green=higher).}
+\end{figure*}
+\efloatseparator
+ 

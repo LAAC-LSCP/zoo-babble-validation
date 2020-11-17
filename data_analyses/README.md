@@ -68,10 +68,9 @@ pip install pydub
 
 If you want to re-enter the virtual environment just follow the same instructions above about activating a virtual environment. There?s no need to re-create the virtual environment nor re-install the packages.
 
+All scripts are in `data/analyses/code/`.
 
 ## Step 1. Convert raw zooniverse classifications into right format
-
-All scripts are in `data/analyses/code/`
 
 $ jupyter notebook Convert_Zooniverse.ipynb
  
@@ -84,8 +83,7 @@ you'll need:
     - [x] All classifications from Zooniverse: "../zooniverse_classifications/zooniverse_data_all_final.csv"
     - [x] Metadata files: "../metadata/metadata_all_PU.csv"
 
-Open merge_datasets_zoon.py and change paths to metadata and to zooniverse classifs.
-Optionally change path to output file created.
+Open and change paths if needed. 
 Run:
 
 $ python merge_datasets_zoon.py 
@@ -102,8 +100,7 @@ requirements:
     - [x] result_final="../metadata/result_final_lisa.csv"  #file from PU with segments metadata and lab classifications
     - [x] result_zoon="../metadata/metadata_all_PU.csv"  #metadata for zooniverse clips
 
-Open merge_datasets_zoon.py and change paths to metadata and to zooniverse classifs.
-Optionally change path to output file created.
+Open and change paths if needed. 
 Run:
 
 $ python chunk_to_segment.py 

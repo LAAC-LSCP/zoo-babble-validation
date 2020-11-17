@@ -55,12 +55,12 @@ abstract: >
 # type: speech; areas of interest: assessment, infants, meta-analyses, prevention, speech recognition, screening, language, early intervention, cultural and ling diversity, dev lang disorders, autism, bilingualism --> choose 5: infants, prevention, dev lang disorders, early interv, diagnostics
 # Clinical practice research that evaluates methods of prevention, screening, diagnosis, treatment or models of service delivery that may improve the function and quality of life for individuals with or at risk of developing disorders of speech, language, cognition, swallowing, audition, and/or balance.
 # #up to 3 keywords
-# keywords          : " reliability; validation; daylong audiorecordings"
+# keywords          : "reliability; validation; daylong audiorecordings"
 # wordcount         : "7,113"
 
 bibliography      : ["zoo.bib"]
 
-figsintext        : yes
+figsintext        : no
 figurelist        : no
 tablelist         : no
 footnotelist      : no
@@ -75,7 +75,7 @@ header-includes:
   - \captionsetup[figure]{font={stretch=1.5}}
   
 class             : "man"
-output            : papaja::apa6_pdf 
+output            : papaja::apa6_word 
 
 ---
 
@@ -104,8 +104,8 @@ knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```{r read-in}
 # read datasets
 
-data_ang <- read.csv("../Derived_Data/classifications_PU_zoon_final17.csv",header=T,sep=",")
-data_td <- read.csv("../Derived_Data/classifications_PU_zoon_final.csv")
+data_ang <- read.csv("segment_AS.csv",header=T,sep=",")
+data_td <- read.csv("segment_LRC.csv")
 data_all<-rbind(data_ang, data_td)
 
 
@@ -135,7 +135,7 @@ data_all$zoo_can[data_all$Zoon_classif=="Canonical"]<-1
 data_all$zoo_can[data_all$Zoon_classif=="Non-Canonical"]<-0
 
 
-demo_data=read.csv("../Derived_Data/demo-data.tsv",sep="\t")
+demo_data=read.csv("demo-data.tsv",sep="\t")
 #add filenames to demo data, to be used later
 demo_data_fn <- demo_data %>% 
      left_join(select(data_all, filename, ChildID), by = c("ChildID"))
@@ -174,9 +174,9 @@ read.table("tab-lena-challenge.txt",header=F,sep="\t",skip=1)->tab1
 #     set_header_rows(1, TRUE) %>% 
 #    style_headers(bold = TRUE)
 
-kable(tab1,cap=mycaption, col.names = NULL)%>%
-  collapse_rows(columns = 1:6, valign = "middle") %>%
-add_header_above(c(" " = 1, "Recall"= 3, "Label Frequency" = 2))
+kable(tab1,cap=mycaption, col.names = NULL) %>%
+  collapse_rows(columns = 1:6, valign = "middle") #%>%
+#add_header_above(c(" " = 1, "Recall"= 3, "Label Frequency" = 2))
 ```
 
 
@@ -732,7 +732,7 @@ We investigated this hypothesis by calculating the proportion of their data labe
 Above, we concluded that derived metrics seem more promising than segment-level data. Notice that derived metrics do not require matching of clips (500 ms presented to Zooniverse participants) to segments (the original LENA^TM^ segments presented to laboratory participants). As a result, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but instead of deriving our proportions for the Zooniverse data from the segment-level composite, we did it based on the individual chunk-level annotations. 
 
 ```{r bychunk-age, echo=F}
-read.csv("../Derived_Data/chunk_majority_agreement_1751.csv")->chunk
+read.csv("zoo_chunk_majority_agreement.csv")->chunk
 bychild=table(chunk$Answer,chunk$ChildID)
 cans=bychild["Canonical",]
 noncans=bychild["Non-Canonical",]
@@ -958,20 +958,9 @@ In this study we validated the quality of annotations obtained through a citizen
 
 # Acknowledgements 
 
-We are grateful to ...
-
-\newpage
+We are grateful to the families who contributed their data; to the Zooniverse volunteers that made this work possible; and the audience and technical committee of SLT 2020 for helpful feedback on preliminary analyses.
 
 
-
-MOVE FIGURE 1 HERE
-
-\newpage
-
-
-MOVE FIGURE 2 HERE
-
-etc
 
 # References
 

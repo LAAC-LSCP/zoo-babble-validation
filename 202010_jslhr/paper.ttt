@@ -1,0 +1,63 @@
+\begin{table*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+
+\caption{\label{tab:tab-LENA-challenge}Comparison of recall percentages obtained with the baseline algorithm created by the ComParE team, in the context of the ComParE 2019 BabySounds subchallenge (Schuller et al., 2019), LENATM labels (note LENATM does not distinguish between Canonical and Non-canonical), and those obtained in this study through Zooniverse annotations. Label frequency indicates the prevalence of the relevant label (Crying, Laughing, etc.) in each dataset (the same Lab dataset was used for both LENATM and Zooniverse). UAR stands for unweighted average recall, WAR for weighted average recall (which takes into account label frequency).}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l}
+\hline
+\multicolumn{1}{c|}{ } & \multicolumn{3}{c|}{Recall} & \multicolumn{2}{c}{Label Frequency} \\
+\cline{2-4} \cline{5-6}
+ & C2019B & LENA & Zoon. & C2019B & Lab\\
+\hline
+Crying & 70.6 & 78.0 & 49.0 & 669 & 581\\
+\cline{1-6}
+Laughing & 41.5 & 12.0 & 56.0 & 149 & 137\\
+\cline{1-6}
+Non-can. & 24.1 &  & 77.0 & 4485 & 5512\\
+\cline{1-2}
+\cline{4-6}
+Canonical & 66.4 & \multirow{-2}{*}{\raggedright\arraybackslash 73.0} & 59.0 & 1426 & 1715\\
+\cline{1-6}
+Junk & 67.3 & 1.0 & 44.0 & 4575 & 2169\\
+\cline{1-6}
+UAR & 54.0 & 41.0 & 57.0 &  & \\
+\cline{1-4}
+WAR & 49.9 & 57.0 & 65.0 & \multirow{-2}{*}{\raggedright\arraybackslash } & \multirow{-2}{*}{\raggedright\arraybackslash }\\
+\hline
+\end{tabular}
+\end{table*}
+\efloatseparator
+ 
+\begin{table*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+
+\caption{\label{tab:tab-cors}Pearson correlation coefficients across metrics derived from laboratory and Zooniverse annotations in the Angelman syndrome (AS) group data, low-risk (LR) group data, or for all children together (all) in three ways. First, All seg indicates that Zooniverse annotations at the clip level were first combined at the segment level. Second, Chunks indicates that they were analyzed directly at the clip level. Both of these are based on all the data. Third, rows labeled 100 seg indicate that laboratory- and Zooniverse-derived metrics were based on only 100 segments (median over 50 runs in which 100 segments were randomly selected from each child).}
+\centering
+\begin{tabular}[t]{l|r|r}
+\hline
+  & Linguistic Proportion & Canonical Proportion\\
+\hline
+All seg AS & 0.878 & 0.681\\
+\hline
+Chunks AS & 0.845 & 0.724\\
+\hline
+100 seg AS & 0.770 & 0.912\\
+\hline
+All seg LR & 0.828 & 0.984\\
+\hline
+Chunks LR & 0.794 & 0.972\\
+\hline
+100 seg LR & 0.841 & 0.808\\
+\hline
+All seg all & 0.794 & 0.920\\
+\hline
+Chunks all & 0.798 & 0.949\\
+\hline
+100 seg all & 0.719 & 0.873\\
+\hline
+\end{tabular}
+\end{table*}
+\efloatseparator
+ 

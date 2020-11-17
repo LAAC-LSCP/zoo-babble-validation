@@ -1,0 +1,4 @@
+idx: unique ID of the chunk (500 ms)
+Answer: what the majority choice is for Zooniverse annotations at the individual chunk level: Canonical, Non-Canonical, Crying, Laughing, Junk
+Age:  child age in months
+ChildID: Anonymous individual child identifier

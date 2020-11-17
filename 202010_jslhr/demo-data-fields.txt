@@ -1,0 +1,4 @@
+ChildID	anonymous individual child identifier
+Diagnosis	whether child has received a diagnosis (AngelmanSyndrome) or not (Low-RiskControl)
+Sex	M=male, F=female
+Age	age in months

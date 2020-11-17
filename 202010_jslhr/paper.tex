@@ -1,7 +1,7 @@
 \PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 %
-\documentclass[english,,man,floatsintext]{apa6}
+\documentclass[english,,man]{apa6}
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
@@ -98,6 +98,12 @@
 
 
 Correspondence concerning this article should be addressed to Alejandrina Cristia, 29 rue d'Ulm, 75005, Paris, France. E-mail: alecristia@gmail.com}
+\DeclareDelayedFloatFlavor{ThreePartTable}{table}
+\DeclareDelayedFloatFlavor{lltable}{table}
+\DeclareDelayedFloatFlavor*{longtable}{table}
+\makeatletter
+\renewcommand{\efloat@iwrite}[1]{\immediate\expandafter\protected@write\csname efloat@post#1\endcsname{}}
+\makeatother
 \usepackage{lineno}
 
 \linenumbers
@@ -351,7 +357,7 @@ As for correlations between Zooniverse and laboratory-derived metrics, we observ
 
 Since all of these results are very similar to those obtained when first matching clips to segments, we conclude that in the future this step may not be necessary. Instead, researchers can derive linguistic and Canonical Proportions directly from citizen scientists' clip level judgements (which was in fact what Cychosz et al., 2019 did).
 
-Next, we looked at whether having more segments from each child may lead to more reliable metrics. We observed a non-significant trend {[}t(17.88)=348.70 and 375.50{]} for lower number of segments in the Angelman syndrome group (mean 348.70, range 163-599) than among low-risk control infants (mean 375.50, range 224-627), likely because of the lower volubility of the former children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications (Cychosz et al., 2019). We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data is extracted from each child by sampling 100 segments from all children (following Cychosz et al., 2019). We randomly sampled 100 segments from each child's data, and recalculated the linguistic and Canonical Proportions based only on these associated judgments. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample. The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, particularly in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was {[}0.51,0.91{]}; for the Angelman syndrome group {[}0.60,0.96{]}; for the low-risk group {[}0.05,0.96{]}. For Canonical Proportion, the range of correlations found for all infants was {[}0.82,0.96{]}; for the Angelman syndrome group {[}0.59,0.95{]}; for the low-risk group {[}0.77,0.98{]}.
+Next, we looked at whether having more segments from each child may lead to more reliable metrics. We observed a non-significant trend {[}t(17.88)=348.70 and 375.50{]} for lower number of segments in the Angelman syndrome group (mean 348.70, range 163-599) than among low-risk control infants (mean 375.50, range 224-627), likely because of the lower volubility of the former children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications (Cychosz et al., 2019). We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data is extracted from each child by sampling 100 segments from all children (following Cychosz et al., 2019). We randomly sampled 100 segments from each child's data, and recalculated the linguistic and Canonical Proportions based only on these associated judgments. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample. The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, particularly in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was {[}0.44,0.89{]}; for the Angelman syndrome group {[}0.49,0.97{]}; for the low-risk group {[}0.29,0.99{]}. For Canonical Proportion, the range of correlations found for all infants was {[}0.75,0.94{]}; for the Angelman syndrome group {[}0.79,0.99{]}; for the low-risk group {[}0.55,0.94{]}.
 
 \begin{table}
 
@@ -365,19 +371,19 @@ All seg AS & 0.878 & 0.681\\
 \hline
 Chunks AS & 0.845 & 0.724\\
 \hline
-100 seg AS & 0.855 & 0.809\\
+100 seg AS & 0.770 & 0.912\\
 \hline
 All seg LR & 0.828 & 0.984\\
 \hline
 Chunks LR & 0.794 & 0.972\\
 \hline
-100 seg LR & 0.609 & 0.907\\
+100 seg LR & 0.841 & 0.808\\
 \hline
 All seg all & 0.794 & 0.920\\
 \hline
 Chunks all & 0.798 & 0.949\\
 \hline
-100 seg all & 0.761 & 0.889\\
+100 seg all & 0.719 & 0.873\\
 \hline
 \end{tabular}
 \end{table}
