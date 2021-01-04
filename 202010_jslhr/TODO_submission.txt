@@ -12,4 +12,16 @@ Then in the docx created:
 - add the two tables
 - add the 5 figures
 - add line numbers
-- 
+- remove all the 5 figs and one of the tables that appear in text in word
+- fix all the third level headers to make sure the whole text is shown
+
+Submission:
+- Select the Section or Category related to your manuscript from the drop-down menu below.
+speech
+- classifcations up to 5
+Infants
+Laguage disorders
+Phonology
+Genetic disorders
+- Research Type
+Clinical practice research that evaluates methods of prevention, screening, diagnosis, treatment or models of service delivery that may improve the function and quality of life for individuals with or at risk of developing disorders of speech, language, cognition, swallowing, audition, and/or balance.
