@@ -11,6 +11,15 @@
 \ifnextchar[{\eatarg}{}
 
 \centering
+\includegraphics{fig_levels.key.pdf}
+\caption{(\#fig:fig:process)Correspondance between LENA-identified segments (which can contain one or more vocalizations) and chunks. Notice that both segments and chunks are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level judgments are combined using the hierarchy Canonical\textgreater{}Non-canonical\textgreater{}Crying\textgreater{}Laughing.}
+\end{figure*}
+\efloatseparator
+ 
+\begin{figure*}[hbt]
+\ifnextchar[{\eatarg}{}
+
+\centering
 \includegraphics{paper_files/figure-latex/fig-corage-1.pdf}
 \caption{\label{fig:fig-corage}Correlations between child-level descriptors and age as a function of metric (Linguistic Proportion in the top row, Canonical Proportion in the bottom row), annotation method, and child group (red=low-risk, and black= Angelman syndrome).}
 \end{figure*}
