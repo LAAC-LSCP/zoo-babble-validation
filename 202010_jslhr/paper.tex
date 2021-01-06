@@ -108,6 +108,13 @@ Correspondence concerning this article should be addressed to Alejandrina Cristi
 
 \linenumbers
 \usepackage{csquotes}
+\usepackage[titles]{tocloft}
+\cftpagenumbersoff{figure}
+\renewcommand{\cftfigpresnum}{\itshape\figurename\enspace}
+\renewcommand{\cftfigaftersnum}{.\space}
+\setlength{\cftfigindent}{0pt}
+\setlength{\cftafterloftitleskip}{0pt}
+\settowidth{\cftfignumwidth}{Figure 10.\qquad}
 \usepackage{setspace}
 \AtBeginEnvironment{tabular}{\singlespacing}
 \AtBeginEnvironment{lltable}{\singlespacing}
@@ -155,33 +162,11 @@ A large body of research has investigated both fine-grained and coarse descripti
 
 The most commonly used software was created by the LENA\textsuperscript{TM} Foundation, and it returns a diarization of the audio signal split into key talkers, including the child wearing the device, as well as a split of these audio attributed to the child into three categories: crying, other fixed and vegetative signals, and speech vocalizations. These subcategories have not been widely validated (Cristia et al., 2020). Moreover, LENA\textsuperscript{TM} lacks an important distinction between more and less advanced vocalizations.
 
-\begin{table}
+Other automatized algorithms have been developed in the last two years, saliently ones attempting to classify child vocalizations into crying, laughing, canonical, and non-canonical (Schuller et al., 2019). The split of speech vocalizations into canonical and non-canonical, and the overt inclusion of laughing, allow a somewhat finer-grained picture of children's vocal activity than what the LENA\textsuperscript{TM} algorithm currently offers. Another advantage of this new line of research is that there exists a challenge where performance has been benchmarked, so unlike LENA\textsuperscript{TM}'s algorithms, we know which algorithms perform better than others. Indeed, the ComParE 2019 BabySounds sub-challenge established a state-of-the-art baseline with a test-set unweighted average recall of around 55\%. By re-using the same test set, researchers can develop new algorithms and prove that they can outperform this baseline (or any subsequent best-performing algorithm benchmarked in the same test set).
 
-\caption{\label{tab:tab-LENA-challenge}Comparison of recall percentages obtained with the baseline algorithm created by the ComParE team, in the context of the ComParE 2019 BabySounds subchallenge (Schuller et al., 2019), LENATM labels (note LENATM does not distinguish between Canonical and Non-canonical), and those obtained in this study through Zooniverse annotations. Label frequency indicates the prevalence of the relevant label (Crying, Laughing, etc.) in each dataset (the same Lab dataset was used for both LENATM and Zooniverse). UAR stands for unweighted average recall, WAR for weighted average recall (which takes into account label frequency).}
-\centering
-\begin{tabular}[t]{l|l|l|l|l|l}
-\hline
- & C2019B & LENA & Zoon. & C2019B & Lab\\
-\hline
-Crying & 70.6 & 78.0 & 49.0 & 669 & 581\\
-\cline{1-6}
-Laughing & 41.5 & 12.0 & 56.0 & 149 & 137\\
-\cline{1-6}
-Non-can. & 24.1 &  & 77.0 & 4485 & 5512\\
-\cline{1-2}
-\cline{4-6}
-Canonical & 66.4 & \multirow{-2}{*}{\raggedright\arraybackslash 73.0} & 59.0 & 1426 & 1715\\
-\cline{1-6}
-Junk & 67.3 & 1.0 & 44.0 & 4575 & 2169\\
-\cline{1-6}
-UAR & 54.0 & 41.0 & 57.0 &  & \\
-\cline{1-4}
-WAR & 49.9 & 57.0 & 65.0 & \multirow{-2}{*}{\raggedright\arraybackslash } & \multirow{-2}{*}{\raggedright\arraybackslash }\\
-\hline
-\end{tabular}
-\end{table}
+Table 1 provides an idea of the accuracy across different methods. Specifically, we calculated accuracy of the LENA\textsuperscript{TM}'s subtypes\footnote{If a child segment contained speech, then it counted towards canonical/non-canonical; else, if it contained crying it counted towards crying; else, if it contained some fixed signals it counted towards laughing; a small proportion were left that did not have any of the three and were considered as \enquote{Junk} or not categorized.} based on the laboratory annotations used in the present study; and we also show the results of ComParE 2019 BabySounds sub-challenge, although note it is not based on the same data as the other two columns. Table 1 shows that LENA\textsuperscript{TM} has a good recall for speech-like vocalizations and crying but not laughing, and by design it does not distinguish between canonical and non-canonical vocalizations. The ComParE 2019 BabySounds sub-challenge's baseline model achieved a more moderate recall on crying than LENA, but clearly outperforms the LENA\textsuperscript{TM} algorithm in the Laughing category, with the additional advantage of distinguishing canonical and non-canonical -- although note that performance in non-canonical is barely above a chance level of 20\% (based on 5 categories, assuming equal probabilities). Notice that the baseline model also included a category called \enquote{Junk} for sections that turned out not to be the child's vocalizations after all, but LENA\textsuperscript{TM} here has a low recall because only sections that LENA\textsuperscript{TM} classified as being child vocalizations are considered in the present study, and thus this class's category cannot but be low-performing for LENA\textsuperscript{TM}. That is, since we selected only segments attributed to the key child, any segment that turns out not to be a child vocalization is a LENA\textsuperscript{TM} error. We return to the comparison between LENA\textsuperscript{TM}, the ComParE 2019 BabySounds sub-challenge baseline, and our Zooniverse-based method in the Discussion, but for now, we simply point out that there are new algorithms being developed, but their performance --although competitive when compared to LENA\textsuperscript{TM}-- is underwhelming.
 
-\textbf{CHECK FLOW IN THIS PARA} Other automatized algorithms have been developed in recent years, saliently ones attempting to classify child vocalizations into crying, laughing, canonical, and non-canonical (Schuller et al., 2019). The split of speech vocalizations into canonical and non-canonical, and the overt inclusion of laughing, allow a somewhat finer-grained picture of children's vocal activity. An advantage of these algorithms is that there exists a challenge where performance has been benchmarked, so unlike LENA\textsuperscript{TM}'s algorithms, we know which algorithms perform better than others. The ComParE 2019 BabySounds sub-challenge established a state-of-the-art baseline with a test-set unweighted average recall of around 55\%. To provide an idea of the accuracy across these different methods, we classified the same segments that are used in the present study using LENA\textsuperscript{TM}'s subtypes\footnote{If a child segment contained speech, then it counted towards canonical/non-canonical; else, if it contained crying it counted towards crying; else, if it contained some fixed signals it counted towards laughing; a small proportion were left that did not have any of the three and were considered as \enquote{Junk} or not categorized.} to compare these against the laboratory annotations used in the present study; and we also show the results of ComParE 2019 BabySounds sub-challenge (although note it is not based on the same data as the other two columns). Table 1 shows that LENA\textsuperscript{TM} has a good recall for speech-like vocalizations and crying but not laughing. \textbf{ADD MORE INFORMATION SO READERS UNDERSTAND THE POINT OF THIS TABLE.} The team who won the challenge improved this by about 2\%, primarily through gains in the laughing class obtained by adding training data (Yeh et al., 2019). Given that the laughing class is very rare, improvements in this class do not mean that performance as a whole, when all classes are weighted based on their frequency of occurrence, changes very much.
+----- INSERT TABLE 1 HERE -----
 
 \hypertarget{derived-metrics}{%
 \paragraph{Derived metrics}\label{derived-metrics}}
@@ -223,9 +208,11 @@ Thus, the present study aimed to contribute a key piece of evidence missing in t
 
 At the segment level, we checked the extent to which laboratory annotations made by experts agreed with judgments made by citizen scientists. We used confusion matrices to describe annotation convergence and divergence patterns, and overall accuracy, kappa, and Gwet's AC1 coefficient as statistical descriptors. Given previous results suggesting that performing this classification based on local acoustic cues is challenging (Schuller et al., 2019; Seidl, Warlaumont, \& Cristia, 2019), we expected agreement to be only moderate at this level.
 
-When considering correspondence at the level of individual children, we derived two metrics: the Linguistic Proportion (Canonical+Non-Canonical)/(all non-Junk judgments); and the Canonical Proportion (Canonical)/(all linguistic judgments). Previous work suggests that children with Angelman syndrome show decreases in Canonical Proportion with age, whereas in typically-developing infants, conversely, the Canonical Proportion was expected to increase with age (Hamrick et al., 2019; Hamrick \& Tonnsen, 2019). Although we could not rely on previous work to make predictions regarding the Linguistic Proportion, we reasoned that we should observe an increase in the Linguistic Proportion for both populations. More specific to our research aims, we checked the degree to which laboratory and citizen science annotations converged at the child level by using correlations across the two.
+When considering correspondence at the level of individual children, we derived two metrics: the Linguistic Proportion (Canonical+Non-Canonical)/(all non-Junk judgments); and the Canonical Proportion (Canonical)/(all linguistic judgments).
 
-It was important for generalizability purposes to examine data from children with variable biological, mental age, and vocal maturity levels. We therefore included children who had been diagnosed with Angelman syndrome and whose ages spanned a wide age range, as well as a group of low-risk control infants. \textbf{Some additional information about Angelman syndrome would be helpful to understand the findings. Were the different patterns between the canonical and linguistic proportions predicted by the already-known characteristics of this syndrome? Has other work included this population? Why was this population selected? Are there hypotheses about the validity between groups or is this more exploratory?} \textbf{relative dearth of LENA data with atypical populations }
+It was important for generalizability purposes to examine data from children with variable biological, mental age, and vocal maturity levels. We therefore included a group of low-risk control infants, who are close to the population most commonly sampled in studies using LENA\^{}TM (see meta-analyses in Wang et al., 2020; Cristia et al., 2020); as well as children who had been diagnosed with Angelman syndrome and whose ages spanned a wide age range. Some previous work had shown that vocal development proceeded differently when compared to a normative sample (Hamrick et al., 2019; Hamrick \& Tonnsen, 2019). Generally, studies on vocal development among children with genetic disorders reveal lower volubility and lower prevalence of canonical syllables (Belardi et al., 2017; Rankine et al., 2017; see also {\textbf{???}} for a review of retrospective video analysis of children diagnosed with Autism Spectrum Disorder, Rett Syndrome, or Fragile X). Low volubility is one of the contexts in which daylong recordings may be particularly advantageous over alternative recording methods (see Rankine et al., 2017 for discussion), since it is challenging to measure vocal development accurately based on shorter recordings (as the child may not vocalize at all in a 1-2h recording). Additionally, the ideal method will be sensitive not only to the large changes that occur over normative development, but also to the potentially smaller individual differences found among children. Such a level of sensitivity is important if these methods are ever to be used to detect potential effects of intervention.
+
+Returning to our overall predictions with these goals in mind, we were particularly interested in describing potential differences in accuracy of derived metrics as a function of our two participant groups. Previous work suggests that children with Angelman syndrome show decreases in Canonical Proportion with age, whereas in typically-developing infants, conversely, the Canonical Proportion was expected to increase with age (Hamrick et al., 2019; Hamrick \& Tonnsen, 2019). Although we could not rely on previous work to make predictions regarding the Linguistic Proportion, we reasoned that we should observe an increase in the Linguistic Proportion for both populations. More specific to our research aims, we checked the degree to which laboratory and citizen science annotations converged at the child level by using correlations across the two.
 
 \hypertarget{methods}{%
 \subsection{Methods}\label{methods}}
@@ -263,19 +250,15 @@ This process resulted in high levels of inter-rater agreement: Two or more of th
 
 A substantial concern that emerges when considering citizen science annotation for spontaneous speech data is the risk of a privacy breach: even short clips can contain personal information that can expose the identity of the speaker, such as addresses or names, or contain sensitive and private information. Fortunately, Seidl et al. (2019) determined that when segments are divided into shorter clips (400-600ms), human annotators with little training can code our categories of interest (Canonical, Laughing, Crying, etc.) with a classification quality comparable to the one carried out on full segments. We therefore used very short clips (500ms) as these are unlikely to contain more than two syllables, and thus prevent the identification of any personal information.
 
-Specifically, the segments extracted were automatically cut into clips of exactly 500ms, extracting neighboring silence when necessary, before being uploaded on the Zooniverse platform. We will call this level \emph{chunk}, to convey that they are part of a bigger unit (the LENA\textsuperscript{TM}-identified \enquote{segment}). To allow the recovery of the original segments at later stages of the analysis, the scripts created a metadata file with the mapping between 500ms chunks and their corresponding segment. Chunks were then uploaded on Zooniverse using Panoptes, their open-source, command-line based API for data handling (Bowyer, Lintott, Hines, Allan, \& Paget, 2015).
+Specifically, the segments extracted were automatically cut into clips of exactly 500ms, extracting neighboring silence when necessary, before being uploaded on the Zooniverse platform. We will call this level \emph{chunk}, to convey that they are part of a bigger unit (the LENA\textsuperscript{TM}-identified \enquote{segment}). Note that segments and chunks are collectively referred to as clips because they are parts of the longer audio recording. To allow the recovery of the original segments at later stages of the analysis, the scripts created a metadata file with the mapping between 500ms chunks and their corresponding segment. Chunks were then uploaded on Zooniverse using Panoptes, their open-source, command-line based API for data handling (Bowyer, Lintott, Hines, Allan, \& Paget, 2015).
 
 Citizen scientists could access our project, \enquote{Maturity of Baby Sounds}, by logging in, or as anonymous participants. Before starting the annotation, participants were given a quick tutorial which walked them through the steps of the annotation workflow (i.e., how to play a sound, how to make a selection; see Figure 1). In this tutorial, we included one audio example for each category in order to make the classification task as smooth as possible. Further clarifications on what constitutes canonical and non-canonical sequences, as well as five audio examples for each of the categories, were available through the Field Guide, which users could access by clicking on the right side of the screen. The Field Guide could be consulted at any point of the classification without interrupting the task.
 
-\begin{figure}
-\centering
-\includegraphics{zooniverse-pufig.pdf}
-\caption{\label{fig:fig-zoo}Screen captures of the 6 stages of the tutorial, three of which are shown here: The initial explanation of the trial, examples of canonical vocalizations, and the classification choice the user needed to make; as well as the Field Guide, which remained accessible on the right of the screen throughout the session, and which allowed users to revise examples of the different categories.}
-\end{figure}
+----- INSERT FIGURE 1 HERE -----
 
 Users were asked to assign each 500ms chunk to one out of five possible categories: (1) Canonical, (2) Non-Canonical, (3) Crying, (4) Laughing, and (5) Junk (overlapping speech, non-infant speech, silence, external sounds). Notice that the latter is narrower than the \enquote{Don't mark} category of the lab annotation routine, which was used any time there was noise or overlap that could affect acoustic analyses.
 
-Following recommendations from the Zooniverse board, we collected five judgments per chunk, rather than three as used in the laboratory. Majority agreement is thus achieved when three out of five judgments agree (rather than two out of three).
+Following recommendations from the Zooniverse board, we collected five judgments per clip, rather than three as used in the laboratory. Majority agreement is thus achieved when three out of five judgments agree (rather than two out of three).
 
 \hypertarget{data-post-processing}{%
 \subsubsection{Data post-processing}\label{data-post-processing}}
@@ -300,11 +283,7 @@ We did this by considering the majority label extracted from Zooniverse judgment
 
 This is essentially the same thought process expert annotators followed when labeling segment-level audio, as each segment can represent multiple classification subtypes. LENA\textsuperscript{TM} segments are not equivalent to child vocalizations: A segment may contain 1 or more vocalizations, which may be of the same type or not. Figure 2 conveys the relationship between chunks and segments, and how judgments are combined into labels.
 
-\begin{figure}
-\centering
-\includegraphics{fig_levels.key.pdf}
-\caption{(\#fig:fig:process)Correspondance between LENA-identified segments (which can contain one or more vocalizations) and chunks. Notice that both segments and chunks are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level judgments are combined using the hierarchy Canonical\textgreater{}Non-canonical\textgreater{}Crying\textgreater{}Laughing.}
-\end{figure}
+----- INSERT FIGURE 2 HERE -----
 
 \hypertarget{results}{%
 \subsection{Results}\label{results}}
@@ -313,13 +292,9 @@ This is essentially the same thought process expert annotators followed when lab
 \subsubsection{Descriptive analyses}\label{descriptive-analyses}}
 
 In this section, we provide descriptive analyses of our dataset. According to lab annotators, 14\% of segments were Canonical, 60\% Non-Canonical, 1\% Laughing, and 4\% Crying, with the remaining 21\% being categorized as \enquote{Don't mark}. Zooniverse data revealed a similar distribution: 15\% Canonical, 60\% Non-Canonical, 3\% Laughing, 7\% Crying, 15\% Junk.
-Next, we inspected the relationship between age and child-level derived metrics, of which we had two: i) Linguistic Proportion = (Canonical+Non-Canonical)/All vocalizations (i.e., we remove Junk), and ii) Canonical Proportion = Canonical/(Canonical+Non-Canonical) (i.e., we remove Junk, Crying, and Laughing). See Figure 2 for results. \textbf{the children with Angelman syndrome scored much lower than the typically-developing infants on the canonical measure but higher on the linguistic measure.}
+Next, we inspected the relationship between age and child-level derived metrics, of which we had two: i) Linguistic Proportion = (Canonical+Non-Canonical)/All vocalizations (i.e., we remove Junk), and ii) Canonical Proportion = Canonical/(Canonical+Non-Canonical) (i.e., we remove Junk, Crying, and Laughing). Figure 3 shows results of plotting our Proportions against child age. We draw the readers' attention to the fact that the children diagnosed with Angelman syndrome had overall higher levels of Linguistic Proportion than the typically-developing infants, but the opposite was true for Canonical Proportion.
 
-\begin{figure}
-\centering
-\includegraphics{paper_files/figure-latex/fig-corage-1.pdf}
-\caption{\label{fig:fig-corage}Correlations between child-level descriptors and age as a function of metric (Linguistic Proportion in the top row, Canonical Proportion in the bottom row), annotation method, and child group (red=low-risk, and black= Angelman syndrome).}
-\end{figure}
+----- INSERT FIGURE 3 HERE -----
 
 Descriptive analyses on the laboratory annotations showed that correlations between the Linguistic Proportion and age differed across the groups. There was a near-zero relationship among the children diagnosed with Angelman syndrome r(8) = -0.09, CI {[}-0.68,0.57{]}, p=0.80{]}; and a significant association among low-risk control children r(8) = 0.70, CI {[}0.13,0.92{]}, p=0.02{]}. The Canonical Proportion exhibited non-significant developmental decreases among children diagnosed with Angelman syndrome r(8) = -0.39, CI {[}-0.82,0.31{]}, p=0.26{]}; and marginal developmental increases among low-risk control r(8) = 0.52, CI {[}-0.17,0.86{]}, p=0.13{]}.
 
@@ -328,26 +303,18 @@ Using the Zooniverse annotations, we found that the association with age was ver
 \hypertarget{main-analyses}{%
 \subsection{Main analyses}\label{main-analyses}}
 
-Next, we discuss the correspondence between citizen science classifications and the laboratory gold standard, at the level of individual segments. Results were visualized with a confusion matrix showing precision and recall (Figure 3): the diagonal elements show the number of correct segment-level classifications for each class while the off-diagonal elements show non-matching classifications.
+Next, we discuss the correspondence between citizen science classifications and the laboratory gold standard, at the level of individual segments. Results were visualized with a confusion matrix showing precision and recall (Figure 4): the diagonal elements show the number of correct segment-level classifications for each class while the off-diagonal elements show non-matching classifications.
 
-\begin{figure}
-\centering
-\includegraphics{paper_files/figure-latex/fig-prec-rec-1.pdf}
-\caption{\label{fig:fig-prec-rec}Number of segments as a function of their majority label from laboratory annotations (rows) versus Zooniverse annotations (columns). Percentages (and shading) indicate precision (left) and recall (right). For precision, the percentage indicates what percentage of the segments that have a given majority label according to Zooniverse data are attributed a given label in Lab data (i.e., columns add up to 100\%). For recall, the percentage indicates what percentage of the segments that have a given majority label according to Lab data are attributed a given label in Zooniverse data (i.e., rows add up to 100\%).}
-\end{figure}
+----- INSERT FIGURE 4 HERE -----
 
 These visualizations suggest that performance is moderate to good, which was confirmed via statistical analyses. The overall (weighted) accuracy is 73\%, CI = {[}72,74{]}, kappa is 0.53, and the Gwet's AC1 coefficient is 0.68, CI = {[}0.67,0.69{]}.
 
 \hypertarget{child-level-descriptors}{%
 \subsubsection{Child level descriptors}\label{child-level-descriptors}}
 
-\begin{figure}
-\centering
-\includegraphics{paper_files/figure-latex/fig-corlab-zoo-1.pdf}
-\caption{\label{fig:fig-corlab-zoo}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of child group (red=low-risk, and black=Angelman syndrome).}
-\end{figure}
+Although the classification at the segment level is only moderately accurate, what we are ultimately interested in is whether citizen scientists' classifications are able to provide a reliable snapshot of children's individual development. We illustrate this association in Figure 5. Looking at all 20 children together, we found a strong positive correlation r(18) = 0.79, CI {[}0.54,0.92{]}, p=0{]} between Linguistic Proportion by child from the Zooniverse and the lab annotators' data. When we split by participant group, correlations remain high: for Angelman syndrome r(8) = 0.88, CI {[}0.56,0.97{]}, p=0.00{]}; low-risk control r(8) = 0.83, CI {[}0.42,0.96{]}, p=0.00{]}.
 
-Although the classification at the segment level is only moderately accurate, what we are ultimately interested in is whether citizen scientists' classifications are able to provide a reliable snapshot of children's individual development. We illustrate this association in Figure 3. Looking at all 20 children together, we found a strong positive correlation r(18) = 0.79, CI {[}0.54,0.92{]}, p=0{]} between Linguistic Proportion by child from the Zooniverse and the lab annotators' data. When we split by participant group, correlations remain high: for Angelman syndrome r(8) = 0.88, CI {[}0.56,0.97{]}, p=0.00{]}; low-risk control r(8) = 0.83, CI {[}0.42,0.96{]}, p=0.00{]}.
+----- INSERT FIGURE 5 HERE -----
 
 Similarly, a strong positive correlation is found in the Canonical Proportion r(18) = 0.92, CI {[}0.81,0.97{]}, p=0{]}. When we split by participant group, correlations remain high although we do note they are somewhat smaller for the children with Angelman syndrome: r(8) = 0.68, CI {[}0.09,0.92{]}, p=0.03{]}; than the low-risk control children r(8) = 0.98, CI {[}0.93,1.00{]}, p=0.
 
@@ -356,59 +323,28 @@ Similarly, a strong positive correlation is found in the Canonical Proportion r(
 
 In this section, we report on explorations of under what conditions Zooniverse judgments more closely aligned with laboratory judgments. In previous work using a similar method, for instance, data from all three children from one dataset were often labeled as \enquote{Junk} (i.e., not a child's vocalization), and the data points from this corpus stood out when the authors attempted to integrate results with other corpora (Cychosz et al., 2019). A high proportion of \enquote{Junk} may indicate that automated segmentation was errorful for those children, and may be a sign that the rest of the data could be compromised as well.
 
-\begin{figure}
-\centering
-\includegraphics{paper_files/figure-latex/fig-cor-Junk-1.pdf}
-\caption{\label{fig:fig-cor-Junk}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of whether children's Junk proportion was higher or lower than the median for all children (blue=lower, and green=higher).}
-\end{figure}
+We investigated this hypothesis by calculating the proportion of their data labeled as \enquote{Junk} for each individual child. There was no significant difference in the proportions of their data labeled as \enquote{Junk} for children with Angelman syndrome (M = 0.14) compared to the low-risk group (M = 0.16): Welch's t(13.35) = -0.58, p = 0.57. We therefore collapsed across groups for this exploratory analysis, and split the 20 children using a median split on the proportion of their data labeled as \enquote{Junk}. Results were similar across these two post-hoc subgroups (see Figure 6). For Linguistic Proportion, the correlation across lab and Zooniverse data for the lower Junk group was r(8) = 0.86, CI {[}0.51,0.97{]}, p=0.00{]}; and for the higher Junk group it was r(8) = 0.90, CI {[}0.61,0.98{]}, p=0. For Canonical Proportion, the correlation across lab and Zooniverse data for the lower Junk group was r(8) = 0.96, CI {[}0.82,0.99{]}, p=0{]}; and for the higher Junk group it was r(8) = 0.90, CI {[}0.61,0.98{]}, p=0. Thus, it does not seem that a higher proportion of \enquote{Junk} judgments is an index of low quality data.
 
-We investigated this hypothesis by calculating the proportion of their data labeled as \enquote{Junk} for each individual child. There was no significant difference in the proportions of their data labeled as \enquote{Junk} for children with Angelman syndrome (M = 0.14) compared to the low-risk group (M = 0.16): Welch's t(13.35) = -0.58, p = 0.57. We therefore collapsed across groups for this exploratory analysis, and split the 20 children using a median split on the proportion of their data labeled as \enquote{Junk}. Results were similar across these two post-hoc subgroups (see Figure 4). For Linguistic Proportion, the correlation across lab and Zooniverse data for the lower Junk group was r(8) = 0.86, CI {[}0.51,0.97{]}, p=0.00{]}; and for the higher Junk group it was r(8) = 0.90, CI {[}0.61,0.98{]}, p=0. For Canonical Proportion, the correlation across lab and Zooniverse data for the lower Junk group was r(8) = 0.96, CI {[}0.82,0.99{]}, p=0{]}; and for the higher Junk group it was r(8) = 0.90, CI {[}0.61,0.98{]}, p=0. Thus, it does not seem that a higher proportion of \enquote{Junk} judgments is an index of low quality data.
+----- INSERT FIGURE 6 HERE -----
 
-Above, we concluded that derived metrics integrating information across audio clips (linguistic and canonical proportion, which can be derived from segment- or chunk-level judgments) seem more promising than segment-level data (where individual segments are classified into Crying, Laughing, etc.) Notice that our derived metrics do not require matching of chunks (500 ms presented to Zooniverse participants) to segments (the original LENA\textsuperscript{TM} segments presented to laboratory participants), because one can calculate the proportions directly from the chunk-level judgment. As a result, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but instead of deriving our proportions for the Zooniverse data from the segment-level composite, we did it based on the individual chunk-level annotations.
+Above, we concluded that derived metrics integrating information across audio clips (linguistic and canonical proportion, which can be derived from segment- or chunk-level judgments) seem more promising than segment-level data (where individual segments are classified into Crying, Laughing, etc.) Notice that our derived metrics do not require matching of chunks (500 ms presented to Zooniverse participants) to segments (the original LENA\textsuperscript{TM} segments presented to laboratory participants), because one can calculate the proportions directly from the chunk-level judgment. As a result, there was one stage in our pre-processing that may not have been necessary, whereby we collapsed judgments across chunks associated to the same segment. We therefore repeated our analyses but instead of deriving our proportions for the Zooniverse data from the segment-level composite, we did it based on the individual chunk-level annotations. To facilitate comparison, correlations across laboratory- and Zooniverse-derived proportions are provided in Table 2.
+
+----- INSERT TABLE 2 HERE -----
 
 Regarding correlations with age, we found that the Linguistic Proportion was not strongly associated with age in the Angelman syndrome group: r(8) = -0.04, CI {[}-0.65,0.61{]}, p=0.92{]}, but increased with age in the low-risk control group: r(8) = 0.72, CI {[}0.16,0.93{]}, p=0.02. Similarly, the Canonical Proportion did not exhibit the same pattern across the groups, with developmental decreases found among children with Angelman syndrome r(8) = -0.38, CI {[}-0.81,0.33{]}, p=0.28{]}; and developmental increases among low-risk control r(8) = 0.57, CI {[}-0.09,0.88{]}, p=0.08.
 
-As for correlations between Zooniverse and laboratory-derived metrics, we observe very similar levels of correlation: Linguistic Proportion overall r(18) = 0.80, CI {[}0.55,0.92{]}, p=0{]} between Linguistic Proportion by child from the Zooniverse and the lab annotators' data. When we split by participant group, correlations remain high: for Angelman syndrome r(8) = 0.84, CI {[}0.46,0.96{]}, p=0.00{]}; low-risk control r(8) = 0.79, CI {[}0.33,0.95{]}, p=0.01{]}. As for Canonical Proportion overall r(18) = 0.95, CI {[}0.87,0.98{]}, p=0; Angelman syndrome: r(8) = 0.72, CI {[}0.17,0.93{]}, p=0.02{]}; low-risk control infants r(8) = 0.97, CI {[}0.88,0.99{]}, p=0.
+As for correlations between Zooniverse- and laboratory-derived metrics (e.g., linguistic proportion as estimated using Zooniverse coding, versus laboratory coding), we observe very similar levels of correlation: Linguistic Proportion overall r(18) = 0.80, CI {[}0.55,0.92{]}, p=0{]} between Linguistic Proportion by child from the Zooniverse and the lab annotators' data. When we split by participant group, correlations remain high: for Angelman syndrome r(8) = 0.84, CI {[}0.46,0.96{]}, p=0.00{]}; low-risk control r(8) = 0.79, CI {[}0.33,0.95{]}, p=0.01{]}. As for Canonical Proportion overall r(18) = 0.95, CI {[}0.87,0.98{]}, p=0; Angelman syndrome: r(8) = 0.72, CI {[}0.17,0.93{]}, p=0.02{]}; low-risk control infants r(8) = 0.97, CI {[}0.88,0.99{]}, p=0.
 
-Since all of these results are very similar to those obtained when first matching chunks to segments, we conclude that in the future this step may not be necessary. Instead, researchers can derive linguistic and Canonical Proportions directly from citizen scientists' chunk level judgments (which was in fact what Cychosz et al., 2019 did).
+Since all of these results are very similar to those obtained when collapsing chunk-level judgments to generate segment-level judgments, we conclude that in the future this step may not be necessary. Instead, researchers can derive linguistic and Canonical Proportions directly from citizen scientists' chunk-level judgments (which was in fact what Cychosz et al., 2019 did).
 
-Next, we looked at whether having more segments from each child may lead to more reliable metrics. We observed a non-significant trend {[}t(17.88)=348.70 and 375.50{]} for lower number of segments in the Angelman syndrome group (mean 348.70, range 163-599) than among low-risk control infants (mean 375.50, range 224-627), likely because of the lower volubility of the former children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications (Cychosz et al., 2019). We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data is extracted from each child by sampling 100 segments from all children (following Cychosz et al., 2019). We randomly sampled 100 segments from each child's data, and recalculated the linguistic and Canonical Proportions based only on these associated judgments. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample. The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, particularly in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was {[}0.44,0.89{]}; for the Angelman syndrome group {[}0.49,0.97{]}; for the low-risk group {[}0.29,0.99{]}. For Canonical Proportion, the range of correlations found for all infants was {[}0.75,0.94{]}; for the Angelman syndrome group {[}0.79,0.99{]}; for the low-risk group {[}0.55,0.94{]}.
-
-\begin{table}
-
-\caption{\label{tab:tab-cors}Pearson correlation coefficients across metrics derived from laboratory and Zooniverse annotations in the Angelman syndrome (AS) group data, low-risk (LR) group data, or for all children together (all) in three ways. First, All seg indicates that Zooniverse annotations at the chunk level were first combined at the segment level. Second, Chunks indicates that they were analyzed directly at the chunk level. Both of these are based on all the data. Third, rows labeled 100 seg indicate that laboratory- and Zooniverse-derived metrics were based on only 100 segments (median over 50 runs in which 100 segments were randomly selected from each child).}
-\centering
-\begin{tabular}[t]{l|r|r}
-\hline
-  & Linguistic Proportion & Canonical Proportion\\
-\hline
-All seg AS & 0.878 & 0.681\\
-\hline
-Chunks AS & 0.845 & 0.724\\
-\hline
-100 seg AS & 0.770 & 0.912\\
-\hline
-All seg LR & 0.828 & 0.984\\
-\hline
-Chunks LR & 0.794 & 0.972\\
-\hline
-100 seg LR & 0.841 & 0.808\\
-\hline
-All seg all & 0.794 & 0.920\\
-\hline
-Chunks all & 0.798 & 0.949\\
-\hline
-100 seg all & 0.719 & 0.873\\
-\hline
-\end{tabular}
-\end{table}
+Next, we looked at whether having more segments from each child may lead to more reliable metrics. We observed a non-significant trend {[}t(17.88)=348.70 and 375.50{]} for lower number of segments in the Angelman syndrome group (mean 348.70, range 163-599) than among low-risk control infants (mean 375.50, range 224-627), likely because of the lower volubility of the former children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications (Cychosz et al., 2019). We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data is extracted from each child by sampling 100 segments from all children (following Cychosz et al., 2019). We randomly sampled 100 segments from each child's data, and recalculated the Linguistic and Canonical Proportions based only on these associated judgments. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample (e.g., the correlation between Linguistic Proportion as estimated using Zooniverse coding on the one hand, and Linguistic Proportion as estimated using laboratory coding on the other). The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, especially in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was {[}0.44,0.89{]}; for the Angelman syndrome group {[}0.49,0.97{]}; for the low-risk group {[}0.29,0.99{]}. For Canonical Proportion, the range of correlations found for all infants was {[}0.75,0.94{]}; for the Angelman syndrome group {[}0.79,0.99{]}; for the low-risk group {[}0.55,0.94{]}.
 
 \hypertarget{discussion}{%
 \subsection{Discussion}\label{discussion}}
 
 In the present study we assessed the extent to which child vocalizations from LENA\textsuperscript{TM} daylong recordings can be accurately described based on classifications collected using the citizen science platform Zooniverse. Our recordings came from children diagnosed with a genetic syndrome associated with severe language disorder, as well as low-risk controls, and included a range of different ages. Excerpts of these recordings had previously been annotated by trained experts in the lab, and served as the \enquote{gold standard}.
 
-In descriptive terms, we found that category frequency was similar across laboratory and citizen science annotations. Correlations between age and our two child-level metrics revealed different developmental patterns between our sample of older children with a diagnosis of Angelman syndrome and younger low-risk controls. Given that the two groups of children differ on both of these features (age and diagnosis), we cannot empirically tease apart these two differences. Nonetheless, inspection of Figure 2 suggests different interpretations for the two derived metrics. Overall, the pattern for Linguistic Proportion is compatible with a non-linear trajectory common to the two groups, whereby the Linguistic Proportion increases rapidly up to 20 months, and hovers around 90-100\% thereafter. In this case, the lack of correlation with age in the Angelman syndrome group suggests that there is little systematic variance in this metric after 20 months of age. In contrast, the two groups seem to differ in their trajectory for Canonical Proportion, with rapid increases up to 20 months in the low-risk group, and slower decreases among children in the Angelman syndrome group.
+In descriptive terms, we found that category frequency was similar across laboratory and citizen science annotations. Correlations between age and our two child-level metrics revealed different developmental patterns between our sample of older children with a diagnosis of Angelman syndrome and younger low-risk controls. Given that the two groups of children differ on both of these features (age and diagnosis), we cannot empirically tease apart these two differences. Nonetheless, inspection of Figure 3 suggests different interpretations for the two derived metrics. Overall, the pattern for Linguistic Proportion is compatible with a non-linear trajectory common to the two groups, whereby the Linguistic Proportion increases rapidly up to 20 months, and hovers around 90-100\% thereafter. In this case, the lack of correlation with age in the Angelman syndrome group suggests that there is little systematic variance in this metric after 20 months of age. In contrast, the two groups seem to differ in their trajectory for Canonical Proportion, with rapid increases up to 20 months in the low-risk group, and relatively stable levels of Canonical Proportion among the children in the Angelman syndrome group.
 
 Next, we looked at agreement between laboratory and Zooniverse annotation at the level of individual segments. We found that some categories had high precision and recall -- notably Non-canonical segments were detected quite accurately, and to a lesser extent the same was true for Canonical segments. This is interesting because it suggests that Zooniverse annotations may be trusted particularly for detecting these two types of speech-like segments.
 
@@ -431,16 +367,16 @@ In sum, we believe these data show that young children's vocalizations can be ac
 
 These findings open up a new, exciting avenue for future research. Our pipeline to upload data on Zooniverse is scalable and quickly adapted to new datasets, including data on infants of different ages, learning different languages, or living in environments with different acoustic properties (e.g., rural versus urban environments). This means large existing datasets of daylong recordings, notably those hosted on Homebank (Vandam et al., 2016), can be reliably annotated in an ecological way using citizen science.
 
+Notwithstanding our enthusiasm, we would like to point out some limitations of our results that can be addressed with more research. The first area in which more research would be welcome involves the pre-processing. We used LENA\textsuperscript{TM} algorithms to detect vocalizations by the key child, but there are newer, better-performing, open-sourced alternatives that could be used instead ({\textbf{???}}). Still, performance is most often established on children whose development is thought to be normative, being raised in small households located in urban environments, whereas it would be important to check for accuracy in more diverse samples, where the children have a diagnosis, multiple siblings, and/or are growing up in a rural environment. Speech technology developments would also be welcome to complement citizen scientists' classifications, particularly for categories that may be hard to classify based on short samples. \textbf{remaining methodological problems with the LENA pipeline (p.~XX); The team who won the challenge improved this by about 2\%, primarily through gains in the laughing class obtained by adding training data (Yeh et al., 2019). Given that the laughing class is very rare, improvements in this class do not mean that performance as a whole, when all classes are weighted based on their frequency of occurrence, changes very much. }
+
 Our results warrant additional research on two metrics we used to describe children's linguistic productions: Linguistic Proportion and Canonical Proportion. Linguistic Proportion has not been investigated extensively in previous research, and correlations with age were weaker than those for Canonical Proportion. We hope additional research is devoted to further investigating this measure as a child-level descriptor, since it may be more relevant for other disorders that are related to emotional disorders (see a review in Halpern \& Coelho, 2016). Additionally, while Canonical Proportion has been studied in much previous work, we believe further research is necessary using larger scales (saliently increasing the sheer number of children studied, to have sufficient power to detect group effects) and with broader coverage (notably including children growing up in a broad range of languages and cultures, as in Cychosz et al., 2019), to make sure that assumptions regarding cross-linguistic and maturational universality are amply justified and not merely a result of having low power to detect differences, or simply sampling from similar populations.
 
 Assuming these child-level metrics continue to be supported by such additional data, it would be interesting for future investigations to expand the analysis of Linguistic Proportion and Canonical Proportion to recover differences and similarities in language development between low-risk children and children with disorders other than Angelman syndrome. That is, it is at present unclear whether relatively lower Canonical Proportions will also be found in other populations, or whether this is more specific to Angelman syndrome. For instance, some previous work has found differences in babbling even when comparing late talkers with toddlers with no specific diagnosis (Fasolo, Majorano, \& D'Odorico, 2008). We thus encourage further research inspecting Canonical Proportion in other populations, as well as methodological work that attempts to generate metrics that are similarly easy to gather at scale.
 
-\textbf{remaining methodological problems with the LENA pipeline (p.~XX);
-the relatively small sample sizes of the two groups we studied (p.~XX);
-the kinds of populations that we cannot be certain this work generalizes to (p.~XX).
-relative dearth of LENA data with atypical populations }
+\textbf{relative dearth of LENA data with atypical populations }
 
-It is also important to note that work on children with non-normative development poses in itself some challenges. Our data contained a lower number of vocalizations for children diagnosed with Angelman syndrome, even though we selected much younger low-risk control children as the comparison group. However, this limitation could be easily overcome in the future: We were limited here because we wanted to use the exact same segments that laboratory annotators had inspected. Now that this method has been validated, researchers can extract all segments that LENA\textsuperscript{TM} identifies as being the key child, thus maximally using available data to get more reliable estimates, as suggested by one of our exploratory analyses.
+It is also important to note that work on children with non-normative development poses in itself some challenges. Our data contained a lower number of vocalizations for children diagnosed with Angelman syndrome, even though we selected much younger low-risk control children as the comparison group. However, this limitation could be easily overcome in the future: We were limited here because we wanted to use the exact same segments that laboratory annotators had inspected. Now that this method has been validated, researchers can extract all segments that LENA\textsuperscript{TM} identifies as being the key child, thus maximally using available data to get more reliable estimates, as suggested by one of our exploratory analyses.\textbf{the relatively small sample sizes of the two groups we studied (p.~XX);}
+\textbf{the kinds of populations that we cannot be certain this work generalizes to (p.~XX).}
 
 Another open question we hope future work looks into is the assessment of within-participant changes. Our dataset only contained one daylong recording per child (with one exception), so other datasets in which a greater number of recordings are collected longitudinally can bring novel insights. Is the age-related decline we observed among children in the Angelman syndrome group truly a developmental decline that happens by necessity in this population, or might it reflect partially other aspects of children's experience and behavior? Additionally, longitudinal work within the same infant may be needed to track the \enquote{natural history} of vocalizations to better contextualize how these metrics should be interpreted. It is also an open question how large must effects be, at the individual level, in order to be detected with this method. For example, there is interest in using naturalistic recordings as outcome measures for clinical (behavioral or pharmacological) trials. The fact that agreement across annotators is high even in the data coming from children diagnosed with Angelman syndrome is encouraging, but it would be important to establish whether absolute levels of Canonical Proportion, and/or rates of change over longer time spans, may be good candidates for tracking the effects of any treatment.
 
@@ -463,6 +399,85 @@ We are grateful to the families who contributed their data; to the Zooniverse vo
 
 \setlength{\parindent}{-0.5in}
 \setlength{\leftskip}{0.5in}
+
+\begin{figure}
+\centering
+\includegraphics{zooniverse-pufig.pdf}
+\caption{\label{fig:fig-zoo}Screen captures of the 6 stages of the tutorial, three of which are shown here: The initial explanation of the trial, examples of canonical vocalizations, and the classification choice the user needed to make; as well as the Field Guide, which remained accessible on the right of the screen throughout the session, and which allowed users to revise examples of the different categories.}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{fig_levels.key.pdf}
+\caption{\label{fig:fig-process}Correspondence between LENA-identified segments (which can contain one or more vocalizations) and chunks. Segments and chunks are collectively referred to as clips because they are parts of the longer audio recording. Notice that clips are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level judgments are combined using the hierarchy Canonical\textgreater{}Non-canonical\textgreater{}Crying\textgreater{}Laughing.}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{paper_files/figure-latex/fig-corage-1.pdf}
+\caption{\label{fig:fig-corage}Correlations between child-level descriptors and age as a function of metric (Linguistic Proportion in the top row, Canonical Proportion in the bottom row), annotation method, and child group (red=low-risk, and black= Angelman syndrome).}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{paper_files/figure-latex/fig-prec-rec-1.pdf}
+\caption{\label{fig:fig-prec-rec}Number of segments as a function of their majority label from laboratory annotations (rows) versus Zooniverse annotations (columns). Percentages (and shading) indicate precision (left) and recall (right). For precision, the percentage indicates what percentage of the segments that have a given majority label according to Zooniverse data are attributed a given label in Lab data (i.e., columns add up to 100\%). For recall, the percentage indicates what percentage of the segments that have a given majority label according to Lab data are attributed a given label in Zooniverse data (i.e., rows add up to 100\%).}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{paper_files/figure-latex/fig-corlab-zoo-1.pdf}
+\caption{\label{fig:fig-corlab-zoo}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of child group (red=low-risk, and black=Angelman syndrome).}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{paper_files/figure-latex/fig-cor-Junk-1.pdf}
+\caption{\label{fig:fig-cor-Junk}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of whether children's Junk proportion was higher or lower than the median for all children (blue=lower, and green=higher).}
+\end{figure}
+
+\begin{table}
+
+\caption{\label{tab:tab-LENA-challenge}Comparison of recall percentages obtained with the baseline algorithm created by the ComParE team, in the context of the ComParE 2019 BabySounds subchallenge (Schuller et al., 2019), LENATM labels (note LENATM does not distinguish between Canonical and Non-canonical), and those obtained in this study through Zooniverse annotations. Label frequency indicates the prevalence of the relevant label (Crying, Laughing, etc.) in each dataset (the same Lab dataset was used for both LENATM and Zooniverse). UAR stands for unweighted average recall, WAR for weighted average recall (which takes into account label frequency).}
+\centering
+\begin{tabular}[t]{l|l|l|l|l|l}
+\hline
+ & C2019B & LENA & Zoon. & C2019B & Lab\\
+\hline
+Crying & 70.6 & 78.0 & 49.0 & 669 & 581\\
+\cline{1-6}
+Laughing & 41.5 & 12.0 & 56.0 & 149 & 137\\
+\cline{1-6}
+Non-can. & 24.1 &  & 77.0 & 4485 & 5512\\
+\cline{1-2}
+\cline{4-6}
+Canonical & 66.4 & \multirow{-2}{*}{\raggedright\arraybackslash 73.0} & 59.0 & 1426 & 1715\\
+\cline{1-6}
+Junk & 67.3 & 1.0 & 44.0 & 4575 & 2169\\
+\cline{1-6}
+UAR & 54.0 & 41.0 & 57.0 &  & \\
+\cline{1-4}
+WAR & 49.9 & 57.0 & 65.0 & \multirow{-2}{*}{\raggedright\arraybackslash } & \multirow{-2}{*}{\raggedright\arraybackslash }\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+
+\caption{\label{tab:tab-cors}Pearson correlation coefficients across metrics derived from laboratory and Zooniverse annotations in the Angelman syndrome (AS) group data, low-risk (LR) group data, or for all children together (all) in three ways. First, All seg indicates that Zooniverse annotations at the chunk level were first combined at the segment level. Second, Chunks indicates that they were analyzed directly at the chunk level. Both of these are based on all the data. Third, rows labeled 100 seg indicate that laboratory- and Zooniverse-derived metrics were based on only 100 segments (median over 50 runs in which 100 segments were randomly selected from each child).}
+\centering
+\begin{tabular}[t]{r|r}
+\hline
+Linguistic Proportion & Canonical Proportion\\
+\hline
+0.878 & 0.681\\
+\hline
+0.828 & 0.984\\
+\hline
+0.794 & 0.920\\
+\hline
+\end{tabular}
+\end{table}
 
 \hypertarget{refs}{}
 \leavevmode\hypertarget{ref-aust2017papaja}{}%
@@ -496,7 +511,7 @@ Cristia, A., Bulgarelli, F., \& Bergelson, E. (2020). Accuracy of the Language E
 Cristia, A., Lavechin, M., Scaff, C., Soderstrom, M., Rowland, C., Räsänen, O., \ldots{} Bergelson, E. (2020). A thorough evaluation of the Language Environment Analysis (LENA) system. \emph{Behavior Research Methods}, 1--20.
 
 \leavevmode\hypertarget{ref-crump2013evaluating}{}%
-Crump, M. J., McDonnell, J. V., \& Gureckis, T. M. (2013). Evaluating amazon's mechanical turk as a tool for experimental behavioral research. \emph{PloS One}, \emph{8}(3), e57410.
+Crump, M. J., McDonnell, J. V., \& Gureckis, T. M. (2013). Evaluating Amazon's Mechanical Turk as a tool for experimental behavioral research. \emph{PloS One}, \emph{8}(3), e57410.
 
 \leavevmode\hypertarget{ref-cychosz2019canonical}{}%
 Cychosz, M., Cristia, A., Bergelson, E., Casillas, M., Baudet, G., Warlaumont, A. S., \ldots{} Seidl, A. (2019). Canonical babble development in a large-scale crosslinguistic corpus.
@@ -566,5 +581,9 @@ Xu, D., Yapanel, U., Gray, S., Gilkerson, J., Richards, J., \& Hansen, J. (2008)
 
 \leavevmode\hypertarget{ref-yeh2019using}{}%
 Yeh, S.-L., Chao, G.-Y., Su, B.-H., Huang, Y.-L., Lin, M.-H., Tsai, Y.-C., \ldots{} others. (2019). Using Attention Networks and Adversarial Augmentation for Styrian Dialect, Continuous Sleepiness and Baby Sound Recognition. In \emph{INTERSPEECH} (pp. 2398--2402).
+
+\clearpage
+\renewcommand{\listfigurename}{Figure captions}
+
 
 \end{document}

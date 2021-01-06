@@ -12,7 +12,7 @@
 
 \centering
 \includegraphics{fig_levels.key.pdf}
-\caption{(\#fig:fig:process)Correspondance between LENA-identified segments (which can contain one or more vocalizations) and chunks. Notice that both segments and chunks are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level judgments are combined using the hierarchy Canonical\textgreater{}Non-canonical\textgreater{}Crying\textgreater{}Laughing.}
+\caption{\label{fig:fig-process}Correspondence between LENA-identified segments (which can contain one or more vocalizations) and chunks. Segments and chunks are collectively referred to as clips because they are parts of the longer audio recording. Notice that clips are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level judgments are combined using the hierarchy Canonical\textgreater{}Non-canonical\textgreater{}Crying\textgreater{}Laughing.}
 \end{figure*}
 \efloatseparator
  

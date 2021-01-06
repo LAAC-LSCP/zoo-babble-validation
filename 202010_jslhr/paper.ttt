@@ -33,27 +33,15 @@ WAR & 49.9 & 57.0 & 65.0 & \multirow{-2}{*}{\raggedright\arraybackslash } & \mul
 
 \caption{\label{tab:tab-cors}Pearson correlation coefficients across metrics derived from laboratory and Zooniverse annotations in the Angelman syndrome (AS) group data, low-risk (LR) group data, or for all children together (all) in three ways. First, All seg indicates that Zooniverse annotations at the chunk level were first combined at the segment level. Second, Chunks indicates that they were analyzed directly at the chunk level. Both of these are based on all the data. Third, rows labeled 100 seg indicate that laboratory- and Zooniverse-derived metrics were based on only 100 segments (median over 50 runs in which 100 segments were randomly selected from each child).}
 \centering
-\begin{tabular}[t]{l|r|r}
+\begin{tabular}[t]{r|r}
 \hline
-  & Linguistic Proportion & Canonical Proportion\\
+Linguistic Proportion & Canonical Proportion\\
 \hline
-All seg AS & 0.878 & 0.681\\
+0.878 & 0.681\\
 \hline
-Chunks AS & 0.845 & 0.724\\
+0.828 & 0.984\\
 \hline
-100 seg AS & 0.770 & 0.912\\
-\hline
-All seg LR & 0.828 & 0.984\\
-\hline
-Chunks LR & 0.794 & 0.972\\
-\hline
-100 seg LR & 0.841 & 0.808\\
-\hline
-All seg all & 0.794 & 0.920\\
-\hline
-Chunks all & 0.798 & 0.949\\
-\hline
-100 seg all & 0.719 & 0.873\\
+0.794 & 0.920\\
 \hline
 \end{tabular}
 \end{table*}

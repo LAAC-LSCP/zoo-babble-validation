@@ -1,10 +1,4 @@
 "","Linguistic Proportion","Canonical Proportion"
-"All seg AS",0.878,0.681
-"Chunks AS",0.845,0.724
-"100 seg AS",0.77,0.912
-"All seg LR",0.828,0.984
-"Chunks LR",0.794,0.972
-"100 seg LR",0.841,0.808
-"All seg all",0.794,0.92
-"Chunks all",0.798,0.949
-"100 seg all",0.719,0.873
+"1",0.878,0.681
+"2",0.828,0.984
+"3",0.794,0.92
