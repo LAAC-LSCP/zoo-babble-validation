@@ -1,23 +1,27 @@
 # cleaning up files
 
 $ wc -l data_analyses/files_from_elsewhere/*
-   19692 data_analyses/files_from_elsewhere/Metadata_batch1b_20200809.csv
- 14040 data_analyses/files_from_elsewhere/Metadata_batch22020_lisa.csv
- 20 data_analyses/files_from_elsewhere/demo-data.tsv
- 0 data_analyses/files_from_elsewhere/dict_4.json
- 10 data_analyses/files_from_elsewhere/filename_links.csv
- 33731 data_analyses/files_from_elsewhere/metadata_all_PU.csv
- 11982 data_analyses/files_from_elsewhere/result_final_lisa.csv
+  19692 data_analyses/files_from_elsewhere/Metadata_batch1b_20200809.csv
+14040 data_analyses/files_from_elsewhere/Metadata_batch22020_lisa.csv
+20 data_analyses/files_from_elsewhere/demo-data.tsv
+0 data_analyses/files_from_elsewhere/dict_4.json
+10 data_analyses/files_from_elsewhere/filename_links.csv
+33731 data_analyses/files_from_elsewhere/metadata_all_PU.csv
+11982 data_analyses/files_from_elsewhere/result_final_lisa.csv
 
- Metadata_batch1b_20200809.csv and Metadata_batch22020_lisa.csv start the same way, so we remove duplicates & merge
+Metadata_batch1b_20200809.csv and Metadata_batch22020_lisa.csv start the same way, so we remove duplicates & merge
 
 ## TO KEEP
- 10 data_analyses/files_from_elsewhere/filename_links.csv contains the mapping between children and recording name
- 20 data_analyses/files_from_elsewhere/demo-data.tsv contains children's demographic info
+10 data_analyses/files_from_elsewhere/filename_links.csv contains the mapping between children and recording name
+20 data_analyses/files_from_elsewhere/demo-data.tsv contains children's demographic info
 result_final_lisa.csv contains lab annotation
  33731 data_analyses/files_from_elsewhere/metadata_all_PU.csv contains all metadata for PU
 
 ## TO REMOVE
+write_seg_data.pymerge_datasets_zoon.pyConvert_Zooniverse.ipynbchunk_to_segment.py
+
+all of the above are no longer needed, since code/recover_zooniverse_metadata.py can generate a csv with combined metadata+subject info, and the code 202010_jslhr/generate_jslhr_data.R can generate all the intermediate files that could be needed.
+
 dict_4.json was created by a different analysis pipeline --> it can be removed, no longer useful, contains no info
 
    19692 data_analyses/files_from_elsewhere/Metadata_batch1b_20200809.csv

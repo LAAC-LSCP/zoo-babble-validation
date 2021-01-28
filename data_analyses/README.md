@@ -98,68 +98,7 @@ $ python data_analyses/code/recover_zooniverse_metadata.py data_analyses/files_f
 
 This step produces a file that contains, for each chunk, information from metadata_all_PU.csv as well as the subject description. We will call this our new chunk metadata file.
 
-## Step 3. Combine chunk metadata with chunk-level classifications
+## Step 3. Combine the new chunk metadata file with all the other information
 
-This step combines chunk metadata with chunk-level classifications, so that now we will have each and every one of the citizen scientists' responses with information about the chunk (including child ID, etc)
+This is done in R, code called `generate_jslhr_data.R`, inside `202010_jslhr`. Please see comments in there.
 
-## Step 4. Combine chunk-level information together so as to generate segment-level information.
-
-
-$ jupyter notebook Convert_Zooniverse.ipynb
- 
-This will launch a window in which you can view the re-generated results. It will also create XXX. Do Ctrl+C in your terminal to close this process and move on to the next step.
-
---------------------------------------------------------------
-## Step 2. Metadata merging
-
-you'll need:
-    - [x] All classifications from Zooniverse: "../zooniverse_classifications/zooniverse_data_all_final.csv"
-    - [x] Metadata files: "../metadata/metadata_all_PU.csv"
-
-Open and change paths if needed. 
-Run:
-
-$ python merge_datasets_zoon.py 
-
-This will create  XXX.
-
---------------------------------------------------------------
-
-## Step 3. Segment-chunk conversion
-
-1. Chunk to segment
-
-requirements:
-    - [x] result_final="../metadata/result_final_lisa.csv"  #file from PU with segments metadata and lab classifications
-    - [x] result_zoon="../metadata/metadata_all_PU.csv"  #metadata for zooniverse clips
-
-Open and change paths if needed. 
-Run:
-
-$ python chunk_to_segment.py 
-
-
-This will create /metadata/dict_4.json file with the mapping between segments and chunks which is used in the next step. 
-
-
-2. Write_seg_data.py
-
-This routine uses the dictionary mapping to determine chunk-level majority agreement and segment-level classification, then writes to a final file which will be used for the analysis.
-
-
-
-you'll need:
-    - [x] Dictionary segment-chunk mapping (dict_4.json -- created in the previous step)
-    - [x] Classifications + metadata (from Step 2)
-
-
-Open and change paths if needed. Change output filename on line 87: 
-
-> total.to_csv("classifications_PU_zoon_final_19oct.csv")
-
-
-Run:
-
-$ python Write_seg_data.py 
-
-This will create  XXX.
