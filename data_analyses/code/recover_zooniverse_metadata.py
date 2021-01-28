@@ -7,8 +7,8 @@ import argparse
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('source', help = 'path to the source metadata to convert')
 parser.add_argument('destination', help = 'destination path')
-parser.add_argument('--subjects', help = 'path to the Zooniverse .csv subjects export', default = 'data_analyses/maturity-of-baby-sounds-subjects.csv')
-parser.add_argument('--links', help = 'path to the dataframe linking ChildID to FileName', default = 'data_analyses/metadata/filename_links.csv')
+parser.add_argument('--subjects', help = 'path to the Zooniverse .csv subjects export', default = 'data_analyses/files_from_zooniverse/maturity-of-baby-sounds-subjects.csv')
+parser.add_argument('--links', help = 'path to the dataframe linking ChildID to FileName', default = 'data_analyses/files_from_elsewhere/filename_links.csv')
 
 args = parser.parse_args()
 

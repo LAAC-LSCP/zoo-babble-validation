@@ -101,11 +101,47 @@ set.seed(42)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 
 printr=function(x) sub("0.", ".", round(x,3))
+
+#document session info
+
+sink("lastknit_session_info.txt")
+sessionInfo()
+sink()
 ```
 
 ```{r read-in}
-# read datasets
+x <- read.csv("../data_analyses/output/metadata_all_PU.csv",header=T,sep =",")
+y <- read.csv("../data_analyses/files_from_zooniverse/zooniverse_data_all_final.csv",header=T,sep =",")
+x$AudioData=paste0(x$AudioData,".mp3")
+merge(x,y,by="AudioData")->chunks
 
+chunks$chunkID=paste(chunks$ChildID,chunks$onset)
+
+#merge with children's info
+demo_data <- read.csv("../data_analyses/files_from_elsewhere/demo-data.tsv",header=T,sep ="\t")
+merge(demo_data,chunks,by="ChildID")->chunks
+
+write.csv(chunks,"../data_analyses/output/chunks_individual_judgments.csv")
+
+# next version collapses across chunks to get the nb of different classifications
+table(chunks$chunkID,chunks$Answer)->mytab
+mytab_mj <- mytab>=3  #set as True the answer types that have 3 or more votes
+mymj <- t(t(apply(mytab_mj, 1, function(u) paste( names(which(u)), collapse=", " )))) #get the answer that has majority vote
+nvotes<- t(t(apply(mytab, 1, max))) #get the number of votes for that 
+maj_jud=cbind(row.names(mytab),mymj,nvotes)
+colnames(maj_jud)<-c("chunkID","Answer","nvotes")
+maj_jud2=as.data.frame(maj_jud)
+maj_jud2$ChildID = gsub(" .*","",maj_jud2$chunkID)
+  
+#add participant information
+merge(demo_data,maj_jud2,by="ChildID")->maj_jud
+
+write.csv(maj_jud,"../data_analyses/output/chunks_maj_judgments.csv")
+
+#add segment-level info from the lab
+#TODO !!!
+
+# read datasets
 data_ang <- read.csv("segment_AS.csv",header=T,sep =",")
 data_td <- read.csv("segment_LRC.csv")
 data_all<-rbind(data_ang, data_td)
