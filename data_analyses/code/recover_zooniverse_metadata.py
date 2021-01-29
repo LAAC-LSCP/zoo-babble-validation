@@ -12,9 +12,12 @@ parser.add_argument('--links', help = 'path to the dataframe linking ChildID to 
 
 args = parser.parse_args()
 
+print("Loading Zooniverse subjects")
 subjects = pd.read_csv(args.subjects)
+
+print("Loading ChildID <-> recording map")
 links = pd.read_csv(args.links)
-links.rename(columns = {'FileName': 'recording'}, inplace = True)
+links.rename(columns = {'filename': 'recording'}, inplace = True)
 
 def get_name(s):
     try:
@@ -24,9 +27,10 @@ def get_name(s):
 
 subjects['AudioData'] = subjects['metadata'].apply(get_name).astype(str)
 
-df = pd.read_csv(args.source, dtype = {'AudioData': str})
+print("Loading local metadata export")
+df = pd.read_csv(args.source, dtype = {'AudioData': str, 'Age': str})
 df = df.merge(subjects, left_on = 'AudioData', right_on = 'AudioData')
-df = df.merge(links, left_on = 'ChildID', right_on = 'ChildID')
+df = df.merge(links[['ChildID', 'recording']], left_on = 'ChildID', right_on = 'ChildID')
 
 df['onset'] = (df['onset']*1000).astype(int)
 df['offset'] = (df['offset']*1000).astype(int)
