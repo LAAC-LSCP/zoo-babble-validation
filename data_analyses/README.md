@@ -72,7 +72,7 @@ It is assumed that you are working at the top level of the github repo. All scri
 
 ## Step 1. If needed, activate python 3 env
 
-ONLY DO THIS IF NEEDED
+ONLY DO THIS IF NEEDED, see installation for details.
 
 Mac OS / Linux
 ```

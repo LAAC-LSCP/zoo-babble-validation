@@ -1,71 +1,96 @@
-#TODO rather than removing them, take the first 5 judgments
+library(rjson)
+#file that has "subject" information -- in Zooniverse terms, that is info about the file that was classified
+zoosj <- read.csv("../data_analyses/output/metadata_all_PU.csv",header=T,sep =",")
 
-x <- read.csv("../data_analyses/output/metadata_all_PU.csv",header=T,sep =",")
-y <- read.csv("../data_analyses/files_from_zooniverse/zooniverse_data_all_final.csv",header=T,sep =",")
+#file that has the classifications (ie cit sci answers)
+classifs <- read.csv("../data_analyses/files_from_zooniverse/zooniverse_data_all_final.csv",header=T,sep =",")
 
-# Remove weird answers, which do not belong here
-y$Answer<-factor(y$Answer,levels=c("Canonical","Non-Canonical","Crying","Laughing","Junk"))
-summary(y$Answer)
-y=y[!is.na(y$Answer),]
-
-# Remove additional votes when there are more than 5? I'm not sure it's the case, perhaps these are repeated names?
-table(y$AudioData)->sumvotes
-sum(sumvotes>5)
-#rownames(sumvotes)[sumvotes>5]
-
-x$AudioData=paste0(x$AudioData,".mp3")
-merge(x,y,by="AudioData")->chunks
-
-chunks$chunkID=paste(chunks$ChildID,chunks$onset)
-
-#merge with children's info
+#children's info
 demo_data <- read.csv("../data_analyses/files_from_elsewhere/demo-data.tsv",header=T,sep ="\t")
-merge(demo_data,chunks,by="ChildID")->chunks
 
-write.csv(chunks,"../data_analyses/output/chunks_individual_judgments.csv")
+#dictionary that relates chunk to segment created by Chiara
+dict <- fromJSON(file="../data_analyses/files_from_elsewhere/dict_4.json") 
+dict.simple=unlist(dict)
+
+#laboratory annotations
+read.csv("../data_analyses/files_from_elsewhere/result_final_lisa.csv")->lab_jud
+
+
+## Cleaning stuff up ##
+# Remove weird answers, which do not belong here
+classifs$Answer<-factor(classifs$Answer,levels=c("Canonical","Non-Canonical","Crying","Laughing","Junk"))
+summary(classifs$Answer)
+classifs=classifs[!is.na(classifs$Answer),]
+classifs$AudioData=as.factor(classifs$AudioData)
+head(classifs)
+
+# Remove additional votes when there are more than 5, 
+# and remove clips with fewer than 5, which likely do not belong to this project
+table(classifs$AudioData)->sumvotes
+toomany=rownames(sumvotes)[sumvotes>5]
+length(toomany)
+justright=rownames(sumvotes)[sumvotes==5]
+length(justright)
+toofew=rownames(sumvotes)[sumvotes<5]
+length(toofew)
+
+classifs$nclasschunk=NA
+clean=classifs[classifs$AudioData %in% justright,] #start by adding the normal ones
+for(thischunk in toomany){
+  classifs$nclasschunk[classifs$AudioData==thischunk]<-1:sum(classifs$AudioData==thischunk)
+  clean=rbind(clean,classifs[classifs$AudioData==thischunk & classifs$nclasschunk<=5 & !is.na(classifs$nclasschunk),])
+}
+
+#check that the procedure worked
+clean$AudioData=as.factor(as.character(clean$AudioData))
+table(clean$AudioData)->sumvotes
+sum(sumvotes>5)
+sum(sumvotes==5)
+sum(sumvotes<5)
+
+write.csv(clean,"../data_analyses/output/clean_classifications.csv")
+classifs<-clean
+
+## Generate views on the data ##
+#combine subject info & classifications
+zoosj$AudioData=paste0(zoosj$AudioData,".mp3")
+merge(zoosj,classifs,by="AudioData")->chunks
+
+#use child ID in the chunkID, for ease of processing later
+chunks$chunkID=paste(chunks$ChildID,chunks$onset,chunks$AudioData)
+
 
 # next version collapses across chunks to get the nb of different classifications
 table(chunks$chunkID,chunks$Answer)->mytab
 sumvotes<- t(t(apply(mytab, 1, sum))) #get the total number of votes
-
-#TODO rather than removing them, take the first 5 judgments
-#some clips have been voted too many times --> remove them from consideration
-row.names(mytab)[sumvotes>5]->exclude
-chunks[!(chunks$chunkID %in% exclude),]->chunks
-
-#redo the table & the stats
-table(chunks$chunkID,chunks$Answer)->mytab
-nvotes<- t(t(apply(mytab, 1, max))) #get the number of votes for that 
-
+nvotes<- t(t(apply(mytab, 1, max))) #get the number of votes for the most common cat 
 mytab_mj <- mytab >= 3  #set as True the answer types that have more than 3 votes
 mymj <- t(t(apply(mytab_mj, 1, function(u) paste( names(which(u)), collapse=", " )))) #get the answer that has majority vote
+maj_jud=data.frame(cbind(row.names(mytab),unlist(mymj),nvotes,sumvotes)) #combine all info
+colnames(maj_jud)<-c("chunkID","Answer","nvotes","sumvotes")
 
-maj_jud=data.frame(cbind(row.names(mytab),unlist(mymj),nvotes))
-colnames(maj_jud)<-c("chunkID","Answer","nvotes")
-
+#recover childID
 maj_jud$ChildID = gsub(" .*","",maj_jud$chunkID)
 
-#add participant information
-merge(demo_data,maj_jud,by="ChildID")->maj_jud2
+#recover AudioData (name of the classified chunk)
+maj_jud$AudioData = gsub(".* ","",maj_jud$chunkID)
+maj_jud$AudioData = gsub(".mp3","",maj_jud$AudioData)
 
-write.csv(maj_jud2,"../data_analyses/output/chunks_maj_judgments.csv")
+#check
+head(maj_jud)
 
 # next I need to match up the segments with the chunks
-x$SegmentOnset=x$onset
-for(i in 1:dim(x)[1]) {
-  correction=x$chunk_pos[i]
-  x$SegmentOnset[i]<-x$SegmentOnset[i-correction]
-}
-x$chunkID = paste(x$ChildID,x$onset)
-
-merge(x[,c("chunkID","SegmentOnset")],maj_jud,by="chunkID")->maj_jud
-
-maj_jud$segID <- paste(maj_jud$ChildID,maj_jud$SegmentOnset)
+maj_jud$segmentId_DB=NA
+sum(dict.simple %in% maj_jud$AudioData) # 17714 found
+sum(!(dict.simple %in% maj_jud$AudioData)) # 16014 not found
+#limit to chunks for which we have data, to go faster
+for(thischunk in dict.simple[dict.simple %in% maj_jud$AudioData]) maj_jud$segmentId_DB[maj_jud$AudioData==thischunk]<-names(dict.simple[dict.simple==thischunk])
+maj_jud$segmentId_DB_old<-maj_jud$segmentId_DB
+maj_jud$segmentId_DB=gsub(".$","",maj_jud$segmentId_DB)
 
 #generate majority at the segment level using our rule:
 # canonical > non-canonical > crying > laughing > junk
-
-table(maj_jud$segID,maj_jud$Answer)->mytab
+table(maj_jud$segmentId_DB,maj_jud$Answer)->mytab
 mytype<-ifelse(mytab[,"Canonical"]>0,"Canonical",
                ifelse(mytab[,"Non-Canonical"]>0,"Non-Canonical",
                       ifelse(mytab[,"Crying"]>0,"Crying",
@@ -74,10 +99,15 @@ mytype<-ifelse(mytab[,"Canonical"]>0,"Canonical",
                       )))))
 
 zoo_jud=cbind(row.names(mytab),mytype)
-colnames(zoo_jud)<-c("segID","Answer")
+colnames(zoo_jud)<-c("segmentId_DB","Answer")
 
-read.csv("../data_analyses/files_from_elsewhere/result_final_lisa.csv")->lab_jud
-lab_jud$segID <- paste(lab_jud$ChildID,lab_jud$Starttime)
+merge(zoo_jud,lab_jud,by="segmentId_DB")->all_jud
 
-merge(zoo_jud,lab_jud,by="segID")->all_jud
-#This fails because the onsets get messed up
+#write everything out
+merge(demo_data,chunks,by="ChildID")->chunks
+write.csv(chunks,"../data_analyses/output/chunks_individual_judgments.csv")
+
+merge(demo_data,maj_jud,by="ChildID")->maj_jud2
+write.csv(maj_jud2,"../data_analyses/output/chunks_maj_judgments.csv")
+
+write.csv(all_jud,"../data_analyses/output/zoo_lab_maj_judgments.csv")
