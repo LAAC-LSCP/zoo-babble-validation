@@ -5,6 +5,9 @@ zoosj <- read.csv("../data_analyses/output/metadata_all_PU.csv",header=T,sep =",
 #file that has the classifications (ie cit sci answers)
 classifs <- read.csv("../data_analyses/files_from_zooniverse/zooniverse_data_all_final.csv",header=T,sep =",")
 
+# <-- solution!! get json data which has classif info & match up using subject_id
+
+
 #children's info
 demo_data <- read.csv("../data_analyses/files_from_elsewhere/demo-data.tsv",header=T,sep ="\t")
 
@@ -49,12 +52,19 @@ sum(sumvotes==5)
 sum(sumvotes<5)
 
 write.csv(clean,"../data_analyses/output/clean_classifications.csv")
+read.csv("../data_analyses/output/clean_classifications.csv")->clean
 classifs<-clean
 
 ## Generate views on the data ##
 #combine subject info & classifications
 zoosj$AudioData=paste0(zoosj$AudioData,".mp3")
 merge(zoosj,classifs,by="AudioData")->chunks
+
+# > length(levels(factor(zoosj$AudioData)))
+# [1] 19691
+# > length(levels(factor(chunks$AudioData)))
+# [1] 17714
+# --> we are missing 2k chunks
 
 #use child ID in the chunkID, for ease of processing later
 chunks$chunkID=paste(chunks$ChildID,chunks$onset,chunks$AudioData)
@@ -83,6 +93,11 @@ head(maj_jud)
 maj_jud$segmentId_DB=NA
 sum(dict.simple %in% maj_jud$AudioData) # 17714 found
 sum(!(dict.simple %in% maj_jud$AudioData)) # 16014 not found
+
+#<-- dict 11980 versus lab_jud has 11982 segmens
+# dict has 33728 chunks
+
+
 #limit to chunks for which we have data, to go faster
 for(thischunk in dict.simple[dict.simple %in% maj_jud$AudioData]) maj_jud$segmentId_DB[maj_jud$AudioData==thischunk]<-names(dict.simple[dict.simple==thischunk])
 maj_jud$segmentId_DB_old<-maj_jud$segmentId_DB
