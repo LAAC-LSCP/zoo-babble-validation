@@ -111,16 +111,16 @@ sink()
 
 ```{r read-in}
 
-# read datasets
-data_ang <- read.csv("segment_AS.csv",header=T,sep =",")
-data_td <- read.csv("segment_LRC.csv")
-data_all<-rbind(data_ang, data_td)
+read.csv("../data_analyses/output/key_info.csv")->x
+rownames(x)<-x$X
 
 
-#remove the word mixed that takes up space and is unnecessary
-data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
-#relevel the factor so that it's easier to read
-data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=c("Canonical","Non-Canonical",                   "Crying","Laughing","Junk",levels(data_all$Zoon_classif)[grep("_",levels(data_all$Zoon_classif))]))
+read.csv("../data_analyses/output/chunks_maj_judgments.csv")->chunks
+read.csv("../data_analyses/output/zoo_lab_maj_judgments.csv")->data_all
+
+#use better names
+data_all$Zoon_classif=data_all$Answer
+
 # create lab column with easier to read correspondance
 data_all$lab<-as.character(data_all$Major_Choice)
 data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
@@ -159,7 +159,7 @@ In the rest of the Introduction, we first briefly summarize two metrics that can
 
 ###  Describing children's vocalizations in long-form recordings
 
-A large body of research has investigated both fine-grained and coarse descriptions of children's vocalizations as a function of age and diagnosis, and it is beyond the scope of this paper to provide a full summary of this work [but see **XX ADD REFERENCE** for a recent summary]. Moreover, the way in which vocal development has been studied in the past may not easily translate to long-form recordings. As mentioned earlier, long-form recordings have several advantages, including capturing the child's vocal patterns in their natural environment and being able to accumulate a great amount of data easily, which is particularly useful for diagnoses and pathologies characterized by low levels of vocal production. However, this also means that the audiorecording is harder to process than an audiorecording gathered in more manicured and stable conditions: In a typical daylong recording, the child will sometimes be in a quiet room with just her primary caregiver, but later in a noisy supermarket or having dinner with family and friends. In fact, human annotation of such audio is estimated to take about 30 times the audio length, with these estimates being greater the more precise one wants or needs to be [@casillas2017new]. It is for this reason that most users of long-form recordings have turned to automatized software for at least a first-pass analysis.
+A large body of research has investigated both fine-grained and coarse descriptions of children's vocalizations as a function of age and diagnosis, and it is beyond the scope of this paper to provide a full summary of this work. Moreover, the way in which vocal development has been studied in the past may not easily translate to long-form recordings. As mentioned earlier, long-form recordings have several advantages, including capturing the child's vocal patterns in their natural environment and being able to accumulate a great amount of data easily, which is particularly useful for diagnoses and pathologies characterized by low levels of vocal production. However, this also means that the audiorecording is harder to process than an audiorecording gathered in more manicured and stable conditions: In a typical daylong recording, the child will sometimes be in a quiet room with just her primary caregiver, but later in a noisy supermarket or having dinner with family and friends. In fact, human annotation of such audio is estimated to take about 30 times the audio length, with these estimates being greater the more precise one wants or needs to be [@casillas2017new]. It is for this reason that most users of long-form recordings have turned to automatized software for at least a first-pass analysis.
 
 #### Automated first-pass analyses
 
@@ -281,7 +281,9 @@ Following recommendations from the Zooniverse board, we collected five judgments
 ### Data post-processing
 <!-- ac this section still has numbers typed in  -->
 
-An impressive total of 4,825 individual Zooniverse users provided labels for the Maturity of Baby Sounds project, of which the present data set is one part. For this project, we collected a total of 169,767 judgments provided for 33,731 500-ms chunks, corresponding to 11,980 LENA^TM^ segments. Nearly a fifth of chunks did not have at least 3 labels in agreement out of the 5 Zooniverse labels (N = 6,585, 19% of all chunks). Of the chunks without a majority agreement, 4341 (66%) contained one or two Junk judgments (out of 5), 6523 (99,9%) had at least two matching judgments (the threshold used for lab-annotated segments), and only 61 (0,01%) had 5 different judgments. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the 81% of chunks that did have at least 3 labels in agreement; this represented 135,725 labels for 27,145 chunks, corresponding to 11,593 LENA^TM^ segments. As the segments average 1.12 seconds in length, this means about 3.8 hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse).
+
+
+An impressive total of `r x["nusers","x"]` individual Zooniverse users provided `r x["njudgments","x"]` judgments on `r x["nchunks","x"]` 500-ms chunks, corresponding to `r dim(data_all)[1]` 11,980 LENA^TM^ segments. For a variety of technical mishaps, XX chunks had to be excluded, leading to `r length(levels(factor(chunks$subject_id)))` chunks and `r length(levels(factor(data_all$segmentId_DB)))` LENA^TM^ segments for which we had five Zooniverse labels. Among these, `r round(sum(chunks$nvotes<2)/dim(chunks)[1]*100,1)`% had no matching labels, `r round(sum(chunks$nvotes==2)/dim(chunks)[1]*100,1)`% had two matching labels (the threshold used for lab-annotated segments), and `r round(sum(chunks$nvotes>=3)/dim(chunks)[1]*100,1)`% had three or more matching labels, or majority agreement. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the `r round(sum(chunks$nvotes>=3)/dim(chunks)[1]*100,1)`%  of chunks that *did* have at least three labels in agreement (i.e., majority agreement). This represented `r sum(chunks$nvotes>=3)*5` 135,725 labels for `r sum(chunks$nvotes>=3)` 27,145 chunks, corresponding to `r dim(data_all)[1]` LENA^TM^ segments. Given that each chunk is 500 ms in length, this means about `r (sum(chunks$nvotes>=3)*.5)/60/60` hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse).
 
 <!-- lh said: I'm also wondering what the breakdown of lab annotations was for the Zooniverse segments without majority agreement -->
 
@@ -304,26 +306,6 @@ This is essentially the same thought process expert annotators followed when lab
 ```{r clean up, echo=F}
 # remove non-majority labels from lab
 data_all[data_all$Num_Agreement>2,]->data_all
-
-# we map the mixed
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Crying"]<-"Crying"
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Canonical"]<-"Canonical"
-# +
-data_all$Zoon_classif[data_all$Zoon_classif=="Canonical_Crying"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Canonical_Laughing"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical_Crying"]<-"Non-Canonical"
-
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Laughing"]<-"Crying"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Canonical_Laughing"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Laughing_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical_Laughing"]<-"Non-Canonical" 
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing"]<-"Non-Canonical"
 
 #and reset the factors for cleanliness
 data_all$Zoon_classif=factor(data_all$Zoon_classif)
