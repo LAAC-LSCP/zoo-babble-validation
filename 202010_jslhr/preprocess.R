@@ -1,6 +1,10 @@
 ## PHASE 1 -- clean classifications
+zoosj <- read.csv("../data_analyses/output/zoo_subj_info_pu.csv",header=T,sep =",")
 
 read.csv("../data_analyses/output/zoo_anno_info_pu.csv",colClasses="factor",header=T,sep =",")->classifs
+
+dim(classifs)
+#[1] 168852     15
 
 library(rjson)
 getval=function(x) fromJSON(x)[[1]]$value
@@ -19,9 +23,9 @@ length(levels(factor(classifs$filename)))
 # and remove clips with fewer than 5
 table(classifs$filename)->sumvotes
 toomany=rownames(sumvotes)[sumvotes>5]
-length(toomany) #271 have too many votes
+length(toomany) #271 have too many votes -- now 194
 justright=rownames(sumvotes)[sumvotes==5]
-length(justright) #33458 have the right amount
+length(justright) #33458 have the right amount -- now 33535
 toofew=rownames(sumvotes)[sumvotes<5]
 length(toofew)#1 chunk didn't receive 5 votes
 
@@ -42,6 +46,8 @@ sum(sumvotes<5)
 rm(classifs) #clean up to make space
 
 merge(zoosj,clean,by="filename")->chunks
+dim(chunks)
+#[1] 168645     36
 
 rm(clean) #clean up to make space
 
@@ -116,7 +122,7 @@ sum(!(dict.simple %in% maj_jud$AudioData)) # 1 not found
 
 rownames(dict)<-dict$chunk
 maj_jud$segmentId_DB <- dict[maj_jud$AudioData,"segmentId_DB"]
-length(levels(factor(maj_jud$segmentId_DB))) #12170
+length(levels(factor(maj_jud$segmentId_DB))) #12170 segments
 
 #generate majority at the segment level using our rule:
 # canonical > non-canonical > crying > laughing > junk

@@ -54,7 +54,7 @@ abstract: >
   
 # #up to 3 keywords
 # keywords          : "reliability; validation; daylong audiorecordings; citizen science; Zooniverse; LENA; long-form recordings"
-# wordcount         : "7,113"
+# wordcount         : "9375"
 
 bibliography      : ["zoo.bib"]
 
@@ -62,7 +62,7 @@ figsintext        : no
 figurelist        : yes
 tablelist         : no
 footnotelist      : no
-lineno            : yes
+lineno            : no
 
 always_allow_html: true
 
@@ -75,7 +75,7 @@ header-includes:
   - \captionsetup[figure]{font={stretch=1.5}}
   
 class             : "man"
-output            : papaja::apa6_pdf
+output            : papaja::apa6_word
 
 ---
 
@@ -100,13 +100,12 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE)
 set.seed(42)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 
+#document session info
+capture.output(sessionInfo(),file="lastknit_session_info.txt")
+
+
 printr=function(x) sub("0.", ".", round(x,3))
 
-#document session info
-
-sink("lastknit_session_info.txt")
-sessionInfo()
-sink()
 ```
 
 ```{r read-in}
@@ -118,6 +117,8 @@ rownames(x)<-x$X
 read.csv("../data_analyses/output/chunks_maj_judgments.csv")->chunks
 read.csv("../data_analyses/output/zoo_lab_maj_judgments.csv")->data_all
 
+label_options=c("Canonical"   ,     "Crying"  ,        "Junk"  ,    "Laughing", "Non-Canonical")
+
 #use better names
 data_all$Zoon_classif=data_all$Answer
 
@@ -126,7 +127,7 @@ data_all$lab<-as.character(data_all$Major_Choice)
 data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
 data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
 data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
-data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
+data_all$lab=factor(data_all$lab,levels=label_options)
 #apply same factor levels as zooniverse so that we can do symmetrical confusion matrices
 
 #add binomials for Linguistic Proportion
@@ -279,17 +280,15 @@ Following recommendations from the Zooniverse board, we collected five judgments
 
 
 ### Data post-processing
-<!-- ac this section still has numbers typed in  -->
 
 
+The following description uses several key concepts: A "judgment" or "label" is a single classification provided by a Zooniverse user in response to a single chunk; a "chunk" is a 500-ms clip extracted from the daylong audio to represent part or all of a segment; a segment is a section of the daylong audio automatically classified as having been uttered by the key child according to the LENA^TM^ algorithm. Bearing this terminology in mind, we provide an overview of the data and how it was processed before the analyses below.
 
-An impressive total of `r x["nusers","x"]` individual Zooniverse users provided `r x["njudgments","x"]` judgments on `r x["nchunks","x"]` 500-ms chunks, corresponding to `r dim(data_all)[1]` 11,980 LENA^TM^ segments. For a variety of technical mishaps, XX chunks had to be excluded, leading to `r length(levels(factor(chunks$subject_id)))` chunks and `r length(levels(factor(data_all$segmentId_DB)))` LENA^TM^ segments for which we had five Zooniverse labels. Among these, `r round(sum(chunks$nvotes<2)/dim(chunks)[1]*100,1)`% had no matching labels, `r round(sum(chunks$nvotes==2)/dim(chunks)[1]*100,1)`% had two matching labels (the threshold used for lab-annotated segments), and `r round(sum(chunks$nvotes>=3)/dim(chunks)[1]*100,1)`% had three or more matching labels, or majority agreement. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the `r round(sum(chunks$nvotes>=3)/dim(chunks)[1]*100,1)`%  of chunks that *did* have at least three labels in agreement (i.e., majority agreement). This represented `r sum(chunks$nvotes>=3)*5` 135,725 labels for `r sum(chunks$nvotes>=3)` 27,145 chunks, corresponding to `r dim(data_all)[1]` LENA^TM^ segments. Given that each chunk is 500 ms in length, this means about `r (sum(chunks$nvotes>=3)*.5)/60/60` hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse).
+An impressive total of `r prettyNum(x["nusers","x"],big.mark=",")` individual Zooniverse users provided `r prettyNum(x["njudgments","x"],big.mark=",")` judgments on `r prettyNum(x["nchunks","x"],big.mark=",")` 500-ms chunks, corresponding to `r prettyNum(dim(data_all)[1],big.mark=",")` LENA^TM^ segments. For a variety of technical mishaps, `r prettyNum((x["njudgments","x"] - dim(chunks)[1]*5),big.mark=",")` judgments had to be excluded, leaving `r prettyNum(length(levels(factor(chunks$filename))),big.mark=",")` chunks (from `r prettyNum(length(levels(factor(data_all$segmentId_DB))),big.mark=",")` LENA^TM^ segments) for which we had five Zooniverse labels (for a total of `r prettyNum(dim(chunks)[1]*5,big.mark=",")` judgments included). Among these `r prettyNum(length(levels(factor(chunks$filename))),big.mark=",")` chunks, `r round(sum(chunks$nvotes<2)/dim(chunks)[1]*100,2)`% had no matching labels, `r round(sum(chunks$nvotes==2)/dim(chunks)[1]*100,2)`% had two matching labels (the threshold used for lab-annotated segments), and `r round(sum(chunks$nvotes>=3)/dim(chunks)[1]*100,2)`% had three or more matching labels, or majority agreement within Zooniverse labels. Future work may explore different ways of setting the minimal requirement for convergence, but for further analyses here, we focused on the `r round(sum(chunks$nvotes>=3)/dim(chunks)[1]*100,2)`%  of chunks that *did* have at least three labels in agreement (i.e., majority agreement). This represented `r prettyNum(sum(chunks$nvotes>=3)*5,big.mark=",")` labels for `r prettyNum(sum(chunks$nvotes>=3),big.mark=",")` chunks, corresponding to `r prettyNum(dim(data_all)[1],big.mark=",")` LENA^TM^ segments. Given that each chunk is 500 ms in length, this means about `r (sum(chunks$nvotes>=3)*.5)/60/60` hours of audio data were annotated by 8 different annotators (3 in the laboratory, 5 on Zooniverse).
 
 <!-- lh said: I'm also wondering what the breakdown of lab annotations was for the Zooniverse segments without majority agreement -->
 
-Lab annotators provided judgments at the level of LENA^TM^ segments, whereas Zooniverse annotators provided judgments on 500 ms chunks, which are typically smaller than the segments. Therefore, we needed to combine chunk-level judgments to reconstruct segment-level judgments.
-
-We did this by considering the majority label extracted from Zooniverse judgments for all chunks associated with each segment, and then following these rules: If the majority label for all chunks associated with a given segment were Junk, then the segment was labelled as Junk; then, following a hierarchy (Canonical>Non-canonical>Crying>Laughing), segments with at least one instance of each judgment were labelled as such: 
+There was one more layer of pre-processing that was necessary for our analyses: Lab annotators provided judgments at the level of LENA^TM^ segments, whereas Zooniverse annotators provided judgments on 500 ms chunks, which are typically smaller than the segments. Therefore, we needed to combine chunk-level judgments to reconstruct segment-level judgments. We did this by considering the majority label extracted from Zooniverse judgments for all chunks associated with each segment, and then following these rules: If the majority label for all chunks associated with a given segment were Junk, then the segment was labelled as Junk; then, following a hierarchy (Canonical>Non-canonical>Crying>Laughing), segments with at least one instance of each judgment were labelled as such: 
 
 - if one Canonical judgment was present, then the segment was labelled as Canonical, 
 - else, if a Non-Canonical judgment was present, the segment was labelled as Non-Canonical, 
@@ -307,9 +306,12 @@ This is essentially the same thought process expert annotators followed when lab
 # remove non-majority labels from lab
 data_all[data_all$Num_Agreement>2,]->data_all
 
+# remove non-majority labels from zooniverse
+data_all[data_all$Zoon_classif %in% label_options,]->data_all
+
 #and reset the factors for cleanliness
-data_all$Zoon_classif=factor(data_all$Zoon_classif)
-data_all$lab=factor(data_all$lab)
+data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=label_options)
+data_all$lab=factor(data_all$lab, levels=label_options)
 sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
 
 table_zoon=round(table(data_all$Zoon)/sum(table(data_all$Zoon))*100)
@@ -746,7 +748,7 @@ resampling=data.frame(resampling)
 
 Next, we looked at whether having more segments from each child may lead to more reliable metrics.  We observed a non-significant trend [Welch t(`r nseg_t$parameter`)=`r nseg_t$statistic`] for lower number of segments in the Angelman syndrome group (M = `r nseg_t$estimate[1]`, range `r min(nsegs$nsegs[nsegs$Diagnosis=="AngelmanSyndrome"])`-`r max(nsegs$nsegs[nsegs$Diagnosis=="AngelmanSyndrome"])`) than among low-risk control infants (M = `r nseg_t$estimate[2]`, range `r min(nsegs$nsegs[nsegs$Diagnosis!="AngelmanSyndrome"])`-`r max(nsegs$nsegs[nsegs$Diagnosis!="AngelmanSyndrome"])`), likely because of the lower volubility of the former children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications [@cychosz2019canonical]. We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data is extracted from each child by sampling 100 segments from all children [following @cychosz2019canonical]. We randomly sampled 100 segments from each child's data, and recalculated the Linguistic and Canonical Proportions based only on these associated judgments. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample (e.g., the correlation between Linguistic Proportion as estimated using Zooniverse coding on the one hand, and Linguistic Proportion as estimated using laboratory coding on the other). 
 
-The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, especially in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was [`r printp(min(resampling$lp_r_all))`,`r printp(max(resampling$lp_r_all))`]; for the Angelman syndrome group [`r printp(min(resampling$lp_r_as))`,`r printp(max(resampling$lp_r_as))`]; for the low-risk group [`r printp(min(resampling$lp_r_lr))`,`r printp(max(resampling$lp_r_lr))`].  For Canonical Proportion, the range of correlations found for all infants was [`r printp(min(resampling$cp_r_all))`,`r printp(max(resampling$cp_r_all))`]; for the Angelman syndrome group [`r printp(min(resampling$cp_r_as))`,`r printp(max(resampling$cp_r_as))`]; for the low-risk group [`r printp(min(resampling$cp_r_lr))`,`r printp(max(resampling$cp_r_lr))`].
+The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, especially in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was [`r printr(min(resampling$lp_r_all))`,`r printr(max(resampling$lp_r_all))`]; for the Angelman syndrome group [`r printr(min(resampling$lp_r_as))`,`r printr(max(resampling$lp_r_as))`]; for the low-risk group [`r printr(min(resampling$lp_r_lr))`,`r printr(max(resampling$lp_r_lr))`].  For Canonical Proportion, the range of correlations found for all infants was [`r printr(min(resampling$cp_r_all))`,`r printr(max(resampling$cp_r_all))`]; for the Angelman syndrome group [`r printr(min(resampling$cp_r_as))`,`r printr(max(resampling$cp_r_as))`]; for the low-risk group [`r printr(min(resampling$cp_r_lr))`,`r printr(max(resampling$cp_r_lr))`].
 
 
 
