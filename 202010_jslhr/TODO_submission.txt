@@ -1,18 +1,19 @@
 they require a word doc so:
 - set to knit to word
-- tab-LENA-challenge comment out:
-#%>%
-#add_header_above(c(" " = 1, "Recall"= 3, "Label Frequency" = 2))
 - knit
 
 Then in the docx created:
 - bring up author note so it's on first page
 - bold & center abstract
 - bold & center title on p. 3
-- add the two tables
-- add the 5 figures
+- move all the figs and tables that appear in text in word to the end
+- add the two tables first:
+	- tab-lena-challenge.txt
+	- mycortab_sorted.csv
+	- use tables.xlsx for formatting
+- add the 5 figures in pdf next (so it's references, tables, figures)
+- find and replace :. with :
 - add line numbers
-- remove all the 5 figs and one of the tables that appear in text in word
 - fix all the third level headers to make sure the whole text is shown
 
 Submission:
