@@ -2,6 +2,8 @@ From Zooniverse raw classifications to chunk- and segment-level analysis
 
 --------------------------------------------------------------
 
+THIS IS OUTDATED and no longer needed. See README at the top level.
+
 ## Step 0.  Installation
 
 ### 1. Install Python 3
