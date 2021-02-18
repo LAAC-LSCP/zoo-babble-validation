@@ -1,3 +1,32 @@
+Sub2
+they require a word doc so:
+- set to knit to word
+- knit
+
+Then in the docx created:
+- bring up author note so it's on first page
+- bold abstract
+- bold title on p. 3
+- remove numbering of headers
+- find and replace :. with :
+- move the tables above figures and after the refs (so it's references, tables, figures)
+- add the tables, use tables.xlsx for formatting: center & times new roman
+	1= tab1-final.csv
+	2= mycortab_sorted.csv
+	3= mycorage.csv
+
+- add the figures in paper_files/figure-latex/pdf format which get messed up with apple+enter if needed for new page: 
+	3=fig-corage
+	4=fig-prec-rec-1.pdf
+	5=fig-corlab-zoo-1.pdf
+	6=fig-cor-Junk-1.pdf 
+- double spacing table captions
+- generate track changes version by comparing documents
+
+
+Sub1
+
+
 they require a word doc so:
 - set to knit to word
 - knit
