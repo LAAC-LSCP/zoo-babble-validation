@@ -27,12 +27,12 @@ loaded via a namespace (and not attached):
 [26] htmltools_0.4.0      dbplyr_2.0.0         rlang_0.4.10         readxl_1.3.1         rstudioapi_0.11     
 [31] generics_0.1.0       jsonlite_1.7.2       ModelMetrics_1.2.2.2 zip_2.1.1            car_3.0-10          
 [36] magrittr_1.5         Rcpp_1.0.6           munsell_0.5.0        fansi_0.4.1          abind_1.4-5         
-[41] lifecycle_0.2.0      yaml_2.2.1           stringi_1.4.6        pROC_1.17.0.1        carData_3.0-4       
-[46] MASS_7.3-51.5        plyr_1.8.6           recipes_0.1.15       grid_3.6.3           crayon_1.3.4        
-[51] haven_2.3.1          splines_3.6.3        hms_0.5.3            knitr_1.31           pillar_1.4.3        
-[56] boot_1.3-24          ggsignif_0.6.0       reshape2_1.4.4       codetools_0.2-16     stats4_3.6.3        
-[61] reprex_1.0.0         glue_1.4.2           evaluate_0.14        data.table_1.13.6    modelr_0.1.6        
-[66] nloptr_1.2.2.1       vctrs_0.3.6          foreach_1.5.1        cellranger_1.1.0     gtable_0.3.0        
-[71] assertthat_0.2.1     xfun_0.20            gower_0.2.2          openxlsx_4.2.3       prodlim_2019.11.13  
-[76] broom_0.7.4          rstatix_0.6.0        class_7.3-16         survival_3.1-11      viridisLite_0.3.0   
-[81] timeDate_3043.102    iterators_1.0.13     lava_1.6.8.1         ellipsis_0.3.1       ipred_0.9-9         
+[41] lifecycle_0.2.0      stringi_1.4.6        pROC_1.17.0.1        carData_3.0-4        MASS_7.3-51.5       
+[46] plyr_1.8.6           recipes_0.1.15       grid_3.6.3           crayon_1.3.4         haven_2.3.1         
+[51] splines_3.6.3        hms_0.5.3            knitr_1.31           pillar_1.4.3         boot_1.3-24         
+[56] ggsignif_0.6.0       reshape2_1.4.4       codetools_0.2-16     stats4_3.6.3         reprex_1.0.0        
+[61] glue_1.4.2           evaluate_0.14        data.table_1.13.6    modelr_0.1.6         nloptr_1.2.2.1      
+[66] vctrs_0.3.6          foreach_1.5.1        cellranger_1.1.0     gtable_0.3.0         assertthat_0.2.1    
+[71] xfun_0.20            gower_0.2.2          openxlsx_4.2.3       prodlim_2019.11.13   broom_0.7.4         
+[76] rstatix_0.6.0        class_7.3-16         survival_3.1-11      viridisLite_0.3.0    timeDate_3043.102   
+[81] iterators_1.0.13     lava_1.6.8.1         ellipsis_0.3.1       ipred_0.9-9         

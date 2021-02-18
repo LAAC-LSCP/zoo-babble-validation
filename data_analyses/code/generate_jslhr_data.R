@@ -8,6 +8,7 @@ origmetadata <- read.csv("../files_from_elsewhere/metadata_all_PU.csv",colClasse
 dim(origmetadata)
 origmetadata$filename=paste0(origmetadata$AudioData,".mp3")
 length(levels(factor(origmetadata$filename)))
+levels(origmetadata$ChildID)
 #33730
 
 # #file that has "subject" information -- in Zooniverse terms, that is info about the file that was classified
@@ -31,7 +32,10 @@ for(mych in names(mytab[mytab==2])){
 dim(zoosj_PU)
 #33730
 
-write.csv(zoosj_PU,"../output/zoo_subj_info_pu.csv")
+write.csv(zoosj_PU,"../output/zoo_subj_info_pu.csv") #all 20 kids are in here
+
+
+
 
 read.csv("../output/zoo_subj_info_pu.csv",colClasses="factor",header=T,sep =",")->zoosj
 
@@ -47,17 +51,16 @@ length(levels(factor(classifs$subject_id)))
 
 write.csv(classifs,"../output/zoo_anno_info_pu.csv")
 
+
 #An impressive total of `r length(levels(factor(judgments$user_id)))` 
 #individual Zooniverse users provided `r dim(judgments)[1]` judgments on 
 #`r length(levels(factor(judgments$subject_ids)))` 500-ms chunks
-keyinfo=c(length(levels(factor(judgments$user_id))),
-          dim(judgments)[1],
-          length(levels(factor(judgments$subject_ids))))
+keyinfo=c(length(levels(factor(classifs$user_id))),
+          dim(classifs)[1],
+          length(levels(factor(classifs$subject_ids))))
 names(keyinfo)<-c("nusers","njudgments","nchunks")
 
 write.csv(keyinfo,"../output/key_info.csv")
-
-
 
 
 
