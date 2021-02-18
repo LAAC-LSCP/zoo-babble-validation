@@ -12,7 +12,7 @@
 
 \centering
 \includegraphics{fig_levels.key.pdf}
-\caption{\label{fig:fig-process}Correspondence between LENA-identified segments (which can contain one or more vocalizations) and chunks. Segments and chunks are collectively referred to as clips because they are parts of the longer audio recording. Notice that clips are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level judgments are combined using the hierarchy Canonical\textgreater{}Non-canonical\textgreater{}Crying\textgreater{}Laughing.}
+\caption{\label{fig:fig-process}Correspondence between LENA-identified segments (which can contain one or more vocalizations) and chunks. Segments and chunks are collectively referred to as clips because they are parts of the longer audio recording. Notice that clips are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level labels are combined using the hierarchy Canonical \textgreater{} Non-canonical \textgreater{} Crying \textgreater{} Laughing \textgreater{} Junk.}
 \end{figure*}
 \efloatseparator
  
@@ -21,7 +21,7 @@
 
 \centering
 \includegraphics{paper_files/figure-latex/fig-corage-1.pdf}
-\caption{\label{fig:fig-corage}Correlations between child-level descriptors and age as a function of metric (Linguistic Proportion in the top row, Canonical Proportion in the bottom row), annotation method, and child group (red=low-risk, and black= Angelman syndrome).}
+\caption{\label{fig:fig-corage}Correlations between child-level descriptors and age as a function of metric (Linguistic Proportion in the top row, Canonical Proportion in the bottom row), annotation method, and child group (red circles = low-risk, and black crosses = Angelman syndrome).}
 \end{figure*}
 \efloatseparator
  
@@ -39,7 +39,7 @@
 
 \centering
 \includegraphics{paper_files/figure-latex/fig-corlab-zoo-1.pdf}
-\caption{\label{fig:fig-corlab-zoo}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of child group (red=low-risk, and black=Angelman syndrome).}
+\caption{\label{fig:fig-corlab-zoo}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of child group (red circles = low-risk, and black crosses = Angelman syndrome).}
 \end{figure*}
 \efloatseparator
  
@@ -48,7 +48,7 @@
 
 \centering
 \includegraphics{paper_files/figure-latex/fig-cor-Junk-1.pdf}
-\caption{\label{fig:fig-cor-Junk}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of whether children's Junk proportion was higher or lower than the median for all children (blue=lower, and green=higher).}
+\caption{\label{fig:fig-cor-Junk}Correlations between child-level descriptors derived from Zooniverse data (y axis) versus lab data (x axis) as a function of whether children's Junk proportion was higher or lower than the median for all children (light blue wheels = lower, and green diamonds = higher).}
 \end{figure*}
 \efloatseparator
  

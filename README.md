@@ -21,7 +21,7 @@ These are very large, so they are not synced in the repo.
 
 
 
-3. Run 202010_jslhr/preprocess.R, which has three steps: cleaning errors in the classifications, generating chunk- and segment-level data. NOTE!! that this file generates `data_analyses/output/clean_classifications.csv`, another large file that is not synced but is necessary for this process. It'll generate the two key files which are used in paper.Rmd:
+3. Run 202010_jslhr/postprocess.R, which has three steps: cleaning errors in the classifications, generating chunk- and segment-level data. NOTE!! that this file generates `data_analyses/output/clean_classifications.csv`, another large file that is not synced but is necessary for this process. It'll generate the two key files which are used in paper.Rmd:
 
 - zoo_lab_maj_judgments.csv- chunks_maj_judgments.csv
 
