@@ -1,6 +1,6 @@
 R version 3.6.3 (2020-02-29)
 Platform: x86_64-apple-darwin15.6.0 (64-bit)
-Running under: macOS Catalina 10.15.7
+Running under: macOS High Sierra 10.13.6
 
 Matrix products: default
 BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
@@ -13,39 +13,40 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] lme4_1.1-21       Matrix_1.2-18     ggpubr_0.4.0      rel_1.4.2        
- [5] huxtable_5.1.1    kableExtra_1.3.1  scales_1.1.0      caret_6.0-86     
- [9] lattice_0.20-40   forcats_0.5.0     stringr_1.4.0     dplyr_1.0.3      
-[13] purrr_0.3.3       readr_1.3.1       tidyr_1.0.2       tibble_3.0.0     
-[17] ggplot2_3.3.0     tidyverse_1.3.0   papaja_0.1.0.9942
+ [1] lme4_1.1-23       Matrix_1.2-18     ggpubr_0.4.0      rel_1.4.2        
+ [5] huxtable_5.1.1    kableExtra_1.1.0  scales_1.1.1      caret_6.0-86     
+ [9] lattice_0.20-40   forcats_0.5.0     stringr_1.4.0     dplyr_1.0.0      
+[13] purrr_0.3.4       readr_1.3.1       tidyr_1.1.0       tibble_3.0.3     
+[17] ggplot2_3.3.2     tidyverse_1.3.0   papaja_0.1.0.9942
 
 loaded via a namespace (and not attached):
- [1] nlme_3.1-145         fs_1.5.0             lubridate_1.7.9.2   
- [4] webshot_0.5.2        httr_1.4.2           tools_3.6.3         
- [7] backports_1.2.1      R6_2.4.1             rpart_4.1-15        
-[10] DBI_1.1.1            colorspace_1.4-1     nnet_7.3-13         
-[13] withr_2.4.1          tidyselect_1.1.0     curl_4.3            
-[16] compiler_3.6.3       cli_2.0.2            rvest_0.3.6         
-[19] xml2_1.3.2           bookdown_0.21        digest_0.6.25       
-[22] minqa_1.2.4          foreign_0.8-76       rmarkdown_2.6       
+ [1] nlme_3.1-145         fs_1.4.1             lubridate_1.7.9     
+ [4] webshot_0.5.2        httr_1.4.1           tools_3.6.3         
+ [7] backports_1.1.8      R6_2.4.1             rpart_4.1-15        
+[10] DBI_1.1.0            colorspace_1.4-1     nnet_7.3-13         
+[13] withr_2.2.0          tidyselect_1.1.0     curl_4.3            
+[16] compiler_3.6.3       cli_2.0.2            rvest_0.3.5         
+[19] xml2_1.3.2           bookdown_0.20        digest_0.6.25       
+[22] minqa_1.2.4          foreign_0.8-76       rmarkdown_2.3       
 [25] rio_0.5.16           pkgconfig_2.0.3      htmltools_0.4.0     
-[28] dbplyr_2.0.0         rlang_0.4.10         readxl_1.3.1        
-[31] rstudioapi_0.11      generics_0.1.0       jsonlite_1.7.2      
-[34] zip_2.1.1            car_3.0-10           ModelMetrics_1.2.2.2
-[37] magrittr_1.5         Rcpp_1.0.6           munsell_0.5.0       
+[28] dbplyr_1.4.4         rlang_0.4.7          readxl_1.3.1        
+[31] rstudioapi_0.11      generics_0.0.2       jsonlite_1.7.0      
+[34] zip_2.0.4            car_3.0-8            ModelMetrics_1.2.2.2
+[37] magrittr_1.5         Rcpp_1.0.5           munsell_0.5.0       
 [40] fansi_0.4.1          abind_1.4-5          lifecycle_0.2.0     
-[43] stringi_1.4.6        pROC_1.17.0.1        yaml_2.2.1          
+[43] stringi_1.4.6        pROC_1.16.2          yaml_2.2.1          
 [46] carData_3.0-4        MASS_7.3-51.5        plyr_1.8.6          
-[49] recipes_0.1.15       grid_3.6.3           crayon_1.3.4        
-[52] haven_2.3.1          splines_3.6.3        hms_0.5.3           
-[55] knitr_1.31           pillar_1.4.3         boot_1.3-24         
-[58] ggsignif_0.6.0       reshape2_1.4.4       codetools_0.2-16    
-[61] stats4_3.6.3         reprex_1.0.0         glue_1.4.2          
-[64] evaluate_0.14        data.table_1.13.6    modelr_0.1.6        
-[67] nloptr_1.2.2.1       vctrs_0.3.6          foreach_1.5.1       
-[70] cellranger_1.1.0     gtable_0.3.0         assertthat_0.2.1    
-[73] openxlsx_4.2.3       xfun_0.20            gower_0.2.2         
-[76] prodlim_2019.11.13   broom_0.7.4          rstatix_0.6.0       
-[79] class_7.3-16         survival_3.1-11      viridisLite_0.3.0   
-[82] timeDate_3043.102    iterators_1.0.13     lava_1.6.8.1        
-[85] ellipsis_0.3.1       ipred_0.9-9         
+[49] recipes_0.1.13       grid_3.6.3           blob_1.2.1          
+[52] crayon_1.3.4         haven_2.3.1          splines_3.6.3       
+[55] hms_0.5.3            knitr_1.29           pillar_1.4.6        
+[58] boot_1.3-24          ggsignif_0.6.0       reshape2_1.4.4      
+[61] codetools_0.2-16     stats4_3.6.3         reprex_0.3.0        
+[64] glue_1.4.1           evaluate_0.14        data.table_1.12.8   
+[67] modelr_0.1.6         nloptr_1.2.2.2       vctrs_0.3.2         
+[70] foreach_1.5.0        cellranger_1.1.0     gtable_0.3.0        
+[73] assertthat_0.2.1     openxlsx_4.1.5       xfun_0.15           
+[76] gower_0.2.2          prodlim_2019.11.13   broom_0.7.0         
+[79] rstatix_0.6.0        class_7.3-16         survival_3.1-11     
+[82] viridisLite_0.3.0    timeDate_3043.102    iterators_1.0.12    
+[85] lava_1.6.7           statmod_1.4.34       ellipsis_0.3.1      
+[88] ipred_0.9-9         
