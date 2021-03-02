@@ -8,15 +8,15 @@ output:
 
 
 ```{r setup, include=FALSE}
+library(groundhog)
+groundhog.day="2021-02-23"
+pkgs=c("knitr", 'tidyverse','dplyr','ggplot2','caret','scales','kableExtra','rel','rmarkdown')
+groundhog.library(pkgs, groundhog.day)
+
+
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(fig.width=12, fig.height=8) 
-library(tidyverse)
-library(dplyr)
-library(ggplot2)
-library(caret)
-library(scales)
-library(kableExtra)
-library(rel)
+
 dodiv=function(x) x/sum(x, na.rm=T)
 ```
 

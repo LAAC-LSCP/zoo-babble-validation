@@ -81,17 +81,13 @@ output            : papaja::apa6_pdf
 ---
 
 ```{r setup, include = FALSE}
-library("papaja")
-library(tidyverse)
-library(dplyr)
-library(ggplot2)
-library(caret)
-library(scales)
-library(kableExtra)
-library(huxtable) #merging cells in tab1
-library(rel)
-library(ggpubr)
-library(lme4)
+library(groundhog)
+groundhog.day="2021-02-23"
+pkgs=c('papaja','tidyverse','dplyr','ggplot2','caret','scales','kableExtra','rel','ggpubr','lme4','rmarkdown')
+groundhog.library(pkgs, groundhog.day)
+
+
+
 #knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE, fig.pos = "T")
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE)
 ```
@@ -102,7 +98,7 @@ set.seed(42)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 
 #document session info
-capture.output(sessionInfo(),file="lastknit_session_info.txt")
+capture.output(sessionInfo(),file="paper-lastknit_session_info.txt")
 
 
 printr=function(x) sub("0.", ".", round(x,3))
