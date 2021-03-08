@@ -81,17 +81,23 @@ output            : papaja::apa6_pdf
 ---
 
 ```{r setup, include = FALSE}
-library("papaja")
-library(tidyverse)
-library(dplyr)
-library(ggplot2)
-library(caret)
-library(scales)
-library(kableExtra)
-library(huxtable) #merging cells in tab1
-library(rel)
-library(ggpubr)
-library(lme4)
+
+library(groundhog)
+groundhog.day="2021-02-23"
+#groundhog.library('papaja', groundhog.day) #NOTE! THIS IS A POINT OF POTENTIAL NON-REPRODUCIBILITY
+library(papaja) #NOTE!
+groundhog.library('tidyverse', groundhog.day)
+groundhog.library('dplyr', groundhog.day)
+groundhog.library('ggplot2', groundhog.day)
+groundhog.library('rmarkdown', groundhog.day)
+groundhog.library('caret', groundhog.day)
+groundhog.library('scales', groundhog.day)
+groundhog.library('kableExtra', groundhog.day)
+groundhog.library('rel', groundhog.day)
+groundhog.library('ggpubr', groundhog.day)
+groundhog.library('lme4', groundhog.day)
+groundhog.library('e1071', groundhog.day)
+
 #knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE, fig.pos = "T")
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE)
 ```
@@ -103,7 +109,6 @@ knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 
 #document session info
 capture.output(sessionInfo(),file="lastknit_session_info.txt")
-
 
 printr=function(x) sub("0.", ".", round(x,3))
 
@@ -242,7 +247,7 @@ Recordings were obtained with the Language ENvironment Analysis (LENA&reg;) Digi
 
 ### Data preprocessing (LENA&reg;)			
 
-The first step we took before beginning the annotation process was the identification of children's vocalizations within day-long recordings. We did this automatically, using the LENA&reg; proprietary software [@xu2008signal]. Specifically, the LENA&reg; software attempts to assign segments of speech either to the key child (the one wearing the recorder), or to one of 15 other categories in the child’s environment (e.g., Female-Adult, TV). Key child labels have a precision of about 60% and a recall of about 50% [@cristia2020thorough]. These stretches of audio assigned to the key child can contain cries, vegetative sounds, and linguistic vocalizations, as well as interstitial pauses. We refer to them as *segments*, to highlight the fact that they are stretches of audio segmented out as belonging to the key child, but they may not be individual vocalizations.
+The first step we took before beginning the annotation process was the identification of children's vocalizations within day-long recordings. We did this automatically, using the LENA&reg; proprietary software [@xu2008signal], with versions ranging from LENA Pro 3.5 to LENA HUB 3.3 to 4.0. In broad terms, the LENA&reg; software attempts to assign segments of speech either to the key child (the one wearing the recorder), or to one of 15 other categories in the child’s environment (e.g., Female-Adult, TV). Key child labels have a precision of about 60% and a recall of about 50% [@cristia2020thorough]. These stretches of audio assigned to the key child can contain cries, vegetative sounds, and linguistic vocalizations, as well as interstitial pauses. We refer to them as *segments*, to highlight the fact that they are stretches of audio segmented out as belonging to the key child, but they may not be individual vocalizations.
 
 
 
@@ -252,7 +257,7 @@ Annotation was carried out at the segment level during lab coding. A subset of s
 
 Annotations were carried out by 20 undergraduate students working in either Speech, Language, and Hearing Sciences or Psychological Science laboratories. Before annotation, coders completed an ethical conduct of research course and received HIPAA compliance training. After this, they completed a brief training on vocal maturity that involved 1) reading relevant literature, 2) reviewing examples of various annotation categories and 3) submitting answers to a brief quiz to test their annotation accuracy. Coders then proceeded to the classification, where they made decisions on whether a segment was a cry, laugh, non-canonical syllable(s), canonical syllable(s), or a word. Coders were instructed to classify each segment based on the highest level of vocal maturity it contained (e.g., a segment with both canonical and non-canonical syllables would be classified as canonical; a segment with both laughing and non-canonical syllables would be classified as non-canonical). For canonical, non-canonical, and word segments, coders indicated how many syllables of each type of vocal maturity they heard (e.g., "ah ma ba" would be 1 non-canonical and 2 canonical syllables). For the purposes of the present study, we considered a "word" judgment to be equivalent to a "canonical" judgment. This may be false sometimes (e.g., "oh" may be coded as a real word by laboratory experts, although it is a non-canonical syllable), but we could not have a "word" judgment in our Zooniverse annotations because that requires context (which compromises privacy -- see next section). 
 
-Coders were also given a "Don’t Mark" option, which they were instructed to use if the segment did not sound like a segment made by the target child, or if there is any overlapping speech or other noise in the background which could affect acoustic analyses. This category is broader than the "Junk" category used by Zooniverse annotators, which is explained in the next section.
+Coders were also given a "Don’t Mark" option, which they were instructed to use if the segment did not sound like a segment made by the target child, or if there is any overlapping speech or other noise in the background which could affect acoustic analyses. This category is broader than the "Junk" category used by Zooniverse annotators, which is explained in the next section. Training materials for laboratory coders are available from @hamrick2021si.
 
 This process resulted in high levels of inter-rater agreement: Two or more of the three total coders who annotated that segment agreed on `r round(sum(data_all$Num_Agreement>=2)/dim(data_all)[1]*100,1)`% of the lab-annotated segments.
 
@@ -763,10 +768,14 @@ nseg_t=t.test(nsegs$nsegs~nsegs$Diagnosis)
 
 resampling=matrix(NA,nrow=50,ncol=6)
 colnames(resampling)<-c("lp_r_all","lp_r_as","lp_r_lr","cp_r_all","cp_r_as","cp_r_lr")
+
 for(i in 1:50){
   sel_seg=NULL
-  for(thischi in levels(data_all$ChildID)) sel_seg<-c(sel_seg,as.character(data_all$segmentId_DB[sample(data_all$segmentId_DB[data_all$ChildID==thischi],100)]))
   
+  #the next line samples 100 voc IDs from each child
+  for(thischi in levels(factor(data_all$ChildID))) sel_seg<-c(sel_seg,as.character(sample(data_all$segmentId_DB[data_all$ChildID==thischi],100)))
+  
+  #generate a subset using those voc IDs
   sampling=data_all[as.character(data_all$segmentId_DB) %in% as.character(sel_seg),]
   
   #get the ns by child, then calculate the linguistic proportion & canonical proportion, separately for zooniverse & lab
@@ -787,7 +796,9 @@ for(i in 1:50){
    resampling[i,"cp_r_all"]=cor.test(thistab$z_cp,thistab$l_cp)$estimate
   resampling[i,"cp_r_as"]=cor.test(thistab$z_cp[thistab$Diagnosis=="AngelmanSyndrome"],thistab$l_cp[thistab$Diagnosis=="AngelmanSyndrome"])$estimate
   resampling[i,"cp_r_lr"]=cor.test(thistab$z_cp[thistab$Diagnosis!="AngelmanSyndrome"],thistab$l_cp[thistab$Diagnosis!="AngelmanSyndrome"])$estimate
- }
+}
+
+
 myr=colMeans(resampling)
 mycortab=rbind(mycortab,cbind(myr[c("lp_r_as" ,"lp_r_lr","lp_r_all")],myr[c("cp_r_as" ,"cp_r_lr","cp_r_all")]))
 rownames(mycortab)[7:9]<-c("100 seg AS","100 seg LR","100 seg all")
