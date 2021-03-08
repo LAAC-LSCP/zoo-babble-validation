@@ -8,15 +8,32 @@ output:
 
 
 ```{r setup, include=FALSE}
+library(groundhog)
+groundhog.day="2021-02-23"
+groundhog.library('tidyverse', groundhog.day)
+groundhog.library('dplyr', groundhog.day)
+groundhog.library('ggplot2', groundhog.day)
+groundhog.library('rmarkdown', groundhog.day)
+groundhog.library('caret', groundhog.day)
+groundhog.library('scales', groundhog.day)
+groundhog.library('kableExtra', groundhog.day)
+groundhog.library('rel', groundhog.day)
+groundhog.library('ggpubr', groundhog.day)
+groundhog.library('lme4', groundhog.day)
+groundhog.library('e1071', groundhog.day)
+groundhog.library('rjson', groundhog.day)
+
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+
+#document session info
+capture.output(sessionInfo(),file="supmat-lastknit_session_info.txt")
+
+
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(fig.width=12, fig.height=8) 
-library(tidyverse)
-library(dplyr)
-library(ggplot2)
-library(caret)
-library(scales)
-library(kableExtra)
-library(rel)
+
 dodiv=function(x) x/sum(x, na.rm=T)
 ```
 
@@ -24,35 +41,7 @@ dodiv=function(x) x/sum(x, na.rm=T)
 ## History:
 
 - 2020-11-03 first version
-
-
-## Read data in
-
-```{r}
-# read datasets
-
-demo_data=read.csv("../Derived_Data/demo-data.tsv",sep="\t")
-data_ang <- read.csv("../Derived_Data/classifications_PU_zoon_final17.csv",header=T,sep=",")
-data_td <- read.csv("../Derived_Data/classifications_PU_zoon_final.csv")
-data_all<-rbind(data_ang, data_td)
-
-#add filenames to demo data
-demo_data_fn <- demo_data %>% 
-     left_join(select(data_all, filename, ChildID), by = c("ChildID"))
-demo_data_fn<-unique(demo_data_fn)
-
-#remove the word mixed that takes up space and is unnecessary
-data_all$Zoon_classif=factor(gsub("Mixed_","",as.character(data_all$Zoon_classif),fixed=T))
-#relevel the factor so that it's easier to read
-data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=c("Canonical","Non-Canonical",                   "Crying","Laughing","Junk",levels(data_all$Zoon_classif)[grep("_",levels(data_all$Zoon_classif))]))
-# create lab column with easier to read correspondance
-data_all$lab<-as.character(data_all$Major_Choice)
-data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
-data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
-data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
-data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
-#apply same factor levels as zooniverse so that we can do symmetrical confusion matrices
-```
+- 2021-03-08 increased reproducibility
 
 
 ## Correspondence between lab & zooniverse annotation at the level of segments
@@ -60,8 +49,97 @@ data_all$lab=factor(data_all$lab,levels=levels(data_all$Zoon_classif))
 
 Here we look at to what extent zooniverse and lab annotations match at the level of individual segments. Each data point is one segment (using LENA segmentation). Unlike in the main paper, here we will show results before applying the ordered rules that give prevalence to canonical, non-canonical, laughing, crying (in that order). 
 
+```{r gen-seg-allinfo}
+## PHASE 3 -- Generate views on the data: majority judgment on the segment
 
-```{r}
+#dictionary that relates chunk to segment created by Chiara
+dict <- fromJSON(file="../data_analyses/files_from_elsewhere/dict_4.json") 
+dict.simple=unlist(dict)
+length(dict.simple) 
+dict=data.frame(cbind(dict.simple,gsub(".$","",as.character(names(dict.simple)))))
+colnames(dict)<-c("chunk","segmentId_DB")
+length(levels(factor(dict$chunk)))
+#33728 chunks
+length(levels(factor(dict$segmentId_DB)))
+#12170 segments
+#NOTE!!! THERE ARE TWO CHUNKS MISSING FROM THIS DICTIONARY!!!
+
+#laboratory annotations
+read.csv("../data_analyses/files_from_elsewhere/result_final_lisa.csv")->lab_jud
+dim(lab_jud)
+#11982 segments
+
+sum(lab_jud$segmentId_DB %in% levels(factor(dict$segmentId_DB))) #11980 in common
+sum(!(lab_jud$segmentId_DB %in% levels(factor(dict$segmentId_DB)))) #2 fund in lab but not dict
+sum(!(levels(factor(dict$segmentId_DB)) %in% lab_jud$segmentId_DB )) #190 found in dict but not in lab
+
+#assuming that we should follow lab data, I'll kick out any segment not in there
+
+#chunk info
+read.csv("../data_analyses/output/chunks_maj_judgments.csv",colClasses="factor")->maj_jud
+maj_jud$AudioData=gsub(".mp3","",maj_jud$filename)
+
+
+# next I need to match up the segments with the chunks
+sum(dict.simple %in% maj_jud$AudioData) # 33727 found
+sum(!(dict.simple %in% maj_jud$AudioData)) # 1 not found
+
+rownames(dict)<-dict$chunk
+maj_jud$segmentId_DB <- dict[maj_jud$AudioData,"segmentId_DB"]
+length(levels(factor(maj_jud$segmentId_DB))) #12170 segments
+
+#in postprocess, the following code is executed, but not here, because we want to keep info about chunk-majority-judgment within each segment
+  # #generate majority at the segment level using our rule:
+  # # canonical > non-canonical > crying > laughing > junk
+  # table(maj_jud$segmentId_DB,maj_jud$Answer)->mytab
+  # mytype<-ifelse(mytab[,"Canonical"]>0,"Canonical",
+  #                ifelse(mytab[,"Non-Canonical"]>0,"Non-Canonical",
+  #                       ifelse(mytab[,"Crying"]>0,"Crying",
+  #                              ifelse(mytab[,"Laughing"]>0,"Laughing",
+  #                                     ifelse(mytab[,"Junk"]>0,"Junk",""
+  #                                     )))))
+
+table(maj_jud$segmentId_DB,maj_jud$Answer)->mytab #we still create the table with the number of judgments
+
+#but the mytype vector will include n's of each type
+mytype <- rep("",n=length(levels(factor(maj_jud$segmentId_DB))))
+mytype<-ifelse(mytab[,"Canonical"]>0,paste(mytype,"Ca",mytab[,"Canonical"],sep=""),mytype)
+mytype<-ifelse(mytab[,"Non-Canonical"]>0,paste(mytype,"N",mytab[,"Non-Canonical"],sep=""),mytype)
+mytype<-ifelse(mytab[,"Crying"]>0,paste(mytype,"Cr",mytab[,"Crying"],sep=""),mytype)
+mytype<-ifelse(mytab[,"Laughing"]>0,paste(mytype,"L",mytab[,"Laughing"],sep=""),mytype)
+mytype<-ifelse(mytab[,"Junk"]>0,paste(mytype,"J",mytab[,"Junk"],sep=""),mytype)
+
+levels(factor(mytype))
+#there are over 350 combinations!! So we won't do that
+
+mytype <- rep("",n=length(levels(factor(maj_jud$segmentId_DB))))
+mytype<-ifelse(mytab[,"Canonical"]>0,paste(mytype,"Ca",sep=""),mytype)
+mytype<-ifelse(mytab[,"Non-Canonical"]>0,paste(mytype,"N",sep=""),mytype)
+mytype<-ifelse(mytab[,"Crying"]>0,paste(mytype,"Cr",sep=""),mytype)
+mytype<-ifelse(mytab[,"Laughing"]>0,paste(mytype,"L",sep=""),mytype)
+mytype<-ifelse(mytab[,"Junk"]>0,paste(mytype,"J",sep=""),mytype)
+levels(factor(mytype))
+# about 30 unique combinations, let's go for it
+
+zoo_jud=cbind(row.names(mytab),mytype)
+colnames(zoo_jud)<-c("segmentId_DB","Answer")
+
+merge(zoo_jud,lab_jud,by="segmentId_DB")->all_jud
+dim(all_jud)
+#11980 segments
+levels(factor(all_jud$ChildID)) 
+length(levels(factor(all_jud$ChildID)))#all 20 kids here
+
+
+
+```
+
+
+
+```{r cm}
+
+
+
 table(data_all$lab)
 table(data_all$Zoon_classif)
 mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
@@ -125,37 +203,48 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 ```
 
 
-## Collapse across "mixed"
+```{r read-in}
+
+read.csv("../data_analyses/output/key_info.csv")->x
+rownames(x)<-x$X
 
 
-```{r}
-#given results above, we map the mixed
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Non-Canonical_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Crying"]<-"Crying"
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing_Crying"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Canonical"]<-"Canonical"
-# +
-data_all$Zoon_classif[data_all$Zoon_classif=="Canonical_Crying"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Canonical_Laughing"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Laughing_Canonical_Crying"]<-"Non-Canonical"
+read.csv("../data_analyses/output/chunks_maj_judgments.csv")->chunks
 
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Laughing"]<-"Crying"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Canonical_Laughing"]<-"Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Laughing_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical"]<-"Non-Canonical"
-data_all$Zoon_classif[data_all$Zoon_classif=="Crying_Non-Canonical_Laughing"]<-"Non-Canonical" 
-data_all$Zoon_classif[data_all$Zoon_classif=="Non-Canonical_Laughing"]<-"Non-Canonical"
+read.csv("../data_analyses/output/zoo_lab_maj_judgments.csv")->data_all
 
-```
+label_options=c("Canonical" , "Non-Canonical"  ,     "Crying"   ,    "Laughing",        "Junk" )
 
-```{r}
-#and reset the factors for cleanliness
-data_all$Zoon_classif=factor(data_all$Zoon_classif)
-data_all$lab=factor(data_all$lab)
-sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
+#use better names
+data_all$Zoon_classif=data_all$Answer
+
+# create lab column with easier to read correspondance
+data_all$lab<-as.character(data_all$Major_Choice)
+data_all$lab[data_all$lab=="Non-canonical syllables"]<-"Non-Canonical"
+data_all$lab[data_all$lab=="Canonical syllables"]<-"Canonical"
+data_all$lab[data_all$lab %in% c("Don't mark","None")]<-"Junk"
+data_all$lab=factor(data_all$lab,levels=label_options)
+#apply same factor levels as zooniverse so that we can do symmetrical confusion matrices
+
+#add binomials for Linguistic Proportion
+data_all$lab_ling=ifelse(data_all$lab %in% c("Canonical","Non-Canonical"),1,0)
+data_all$zoo_ling=ifelse(data_all$Zoon_classif %in% c("Canonical","Non-Canonical"),1,0)
+data_all$lab_ling[data_all$lab=="Junk"]<-NA
+data_all$zoo_ling[data_all$lab=="Junk"]<-NA
+
+#add binomials for Canonical Proportion
+data_all$lab_can=data_all$zoo_can=NA
+data_all$lab_can[data_all$lab=="Canonical"]<-1
+data_all$lab_can[data_all$lab=="Non-Canonical"]<-0
+data_all$zoo_can[data_all$Zoon_classif=="Canonical"]<-1
+data_all$zoo_can[data_all$Zoon_classif=="Non-Canonical"]<-0
+
+
+demo_data=read.csv("demo-data.tsv",sep ="\t")
+#add filenames to demo data, to be used later
+demo_data_fn <- demo_data %>% 
+     left_join(select(data_all, filename, ChildID), by = c("ChildID"))
+demo_data_fn<-unique(demo_data_fn)
 
 ```
 

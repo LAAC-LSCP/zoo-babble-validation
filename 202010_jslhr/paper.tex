@@ -30,6 +30,7 @@
 \usepackage{hyperref}
 \hypersetup{
             pdftitle={Describing vocalizations in young children: A big data approach through citizen science annotation},
+            pdfauthor={Chiara Semenzin1, Lisa Hamrick2, Amanda Seidl2, Bridgette L. Kelleher2, \& Alejandrina Cristia1},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -88,16 +89,12 @@
   {\section{\normalfont\normalsize\abstractname}}
   {\section*{\normalfont\normalsize\abstractname}}
   {}{\typeout{Failed to patch abstract.}}
+\patchcmd{\HyOrg@maketitle}
+  {\section{\protect\normalfont{\@title}}}
+  {\section*{\protect\normalfont{\@title}}}
+  {}{\typeout{Failed to patch title.}}
 \makeatother
 \shorttitle{Children's vocalizations and citizen science}
-\author{Chiara Semenzin\textsuperscript{1}, Lisa Hamrick\textsuperscript{2}, Amanda Seidl\textsuperscript{2}, Bridgette L. Kelleher\textsuperscript{2}, \& Alejandrina Cristia\textsuperscript{1}}
-\affiliation{
-\vspace{0.5cm}
-\textsuperscript{1} Laboratoire de Sciences Cognitives et de Psycholinguistique, Département d'Etudes cognitives, ENS, EHESS, CNRS, PSL University\\\textsuperscript{2} Purdue University}
-\authornote{AC acknowledges Agence Nationale de la Recherche (ANR-17-CE28-0007 LangAge, ANR-16-DATA-0004 ACLEW, ANR-14-CE30-0003 MechELex, ANR-17-EURE-0017), and the J. S. McDonnell Foundation (Understanding Human Cognition Scholar Award); LH  the National Institute of Deafness and Other Communication Disorders (F31DC018219); BK the National Institute of Mental Health (K23MH111955) and the Kinley Trust. This publication uses data generated via the Zooniverse.org platform, development of which is funded by generous support, including a Global Impact Award from Google, and by a grant from the Alfred P. Sloan Foundation. The funders had no impact on this study.  All authors approved the final manuscript as submitted, agree to be accountable for all aspects of the work and have no conflict of interests to disclose.
-
-
-Correspondence concerning this article should be addressed to Alejandrina Cristia, 29 rue d'Ulm, 75005, Paris, France. E-mail: alecristia@gmail.com}
 \DeclareDelayedFloatFlavor{ThreePartTable}{table}
 \DeclareDelayedFloatFlavor{lltable}{table}
 \DeclareDelayedFloatFlavor*{longtable}{table}
@@ -127,8 +124,11 @@ Correspondence concerning this article should be addressed to Alejandrina Cristi
 \fi
 
 \title{Describing vocalizations in young children: A big data approach through citizen science annotation}
-
+\author{Chiara Semenzin\textsuperscript{1}, Lisa Hamrick\textsuperscript{2}, Amanda Seidl\textsuperscript{2}, Bridgette L. Kelleher\textsuperscript{2}, \& Alejandrina Cristia\textsuperscript{1}}
 \date{}
+
+
+\affiliation{\vspace{0.5cm}\textsuperscript{1} Laboratoire de Sciences Cognitives et de Psycholinguistique, Département d'Etudes cognitives, ENS, EHESS, CNRS, PSL University\\\textsuperscript{2} Purdue University}
 
 \abstract{
 \textbf{Purpose:} Recording young children's vocalizations through wearables is a promising method to assess language development. However, accurately and rapidly annotating these files remains challenging. Online crowdsourcing with the collaboration of citizen scientists could be a feasible solution. In this paper, we assess the extent to which citizen scientists' annotations align with those gathered in the lab for recordings collected from young children. \newline
@@ -141,6 +141,8 @@ Correspondence concerning this article should be addressed to Alejandrina Cristi
 
 \textbf{Conclusion:} Annotations obtained through a citizen science platform can help us overcome challenges posed by the process of annotating daylong speech recordings. Particularly when used in composites or derived metrics, such annotations can be used to investigate early markers of language delays.
 }
+
+
 
 \begin{document}
 \maketitle
@@ -227,7 +229,7 @@ Recordings were obtained with the Language ENvironment Analysis (LENA®) Digital
 \hypertarget{data-preprocessing-lena}{%
 \subsubsection{Data preprocessing (LENA®)}\label{data-preprocessing-lena}}
 
-The first step we took before beginning the annotation process was the identification of children's vocalizations within day-long recordings. We did this automatically, using the LENA® proprietary software (Xu et al., 2008). Specifically, the LENA® software attempts to assign segments of speech either to the key child (the one wearing the recorder), or to one of 15 other categories in the child's environment (e.g., Female-Adult, TV). Key child labels have a precision of about 60\% and a recall of about 50\% (Cristia, Lavechin, et al., 2020). These stretches of audio assigned to the key child can contain cries, vegetative sounds, and linguistic vocalizations, as well as interstitial pauses. We refer to them as \emph{segments}, to highlight the fact that they are stretches of audio segmented out as belonging to the key child, but they may not be individual vocalizations.
+The first step we took before beginning the annotation process was the identification of children's vocalizations within day-long recordings. We did this automatically, using the LENA® proprietary software (Xu et al., 2008), with versions ranging from LENA Pro 3.5 to LENA HUB 3.3 to 4.0. In broad terms, the LENA® software attempts to assign segments of speech either to the key child (the one wearing the recorder), or to one of 15 other categories in the child's environment (e.g., Female-Adult, TV). Key child labels have a precision of about 60\% and a recall of about 50\% (Cristia, Lavechin, et al., 2020). These stretches of audio assigned to the key child can contain cries, vegetative sounds, and linguistic vocalizations, as well as interstitial pauses. We refer to them as \emph{segments}, to highlight the fact that they are stretches of audio segmented out as belonging to the key child, but they may not be individual vocalizations.
 
 \hypertarget{annotation-by-lab-experts}{%
 \subsubsection{Annotation by lab experts}\label{annotation-by-lab-experts}}
@@ -236,7 +238,7 @@ Annotation was carried out at the segment level during lab coding. A subset of s
 
 Annotations were carried out by 20 undergraduate students working in either Speech, Language, and Hearing Sciences or Psychological Science laboratories. Before annotation, coders completed an ethical conduct of research course and received HIPAA compliance training. After this, they completed a brief training on vocal maturity that involved 1) reading relevant literature, 2) reviewing examples of various annotation categories and 3) submitting answers to a brief quiz to test their annotation accuracy. Coders then proceeded to the classification, where they made decisions on whether a segment was a cry, laugh, non-canonical syllable(s), canonical syllable(s), or a word. Coders were instructed to classify each segment based on the highest level of vocal maturity it contained (e.g., a segment with both canonical and non-canonical syllables would be classified as canonical; a segment with both laughing and non-canonical syllables would be classified as non-canonical). For canonical, non-canonical, and word segments, coders indicated how many syllables of each type of vocal maturity they heard (e.g., \enquote{ah ma ba} would be 1 non-canonical and 2 canonical syllables). For the purposes of the present study, we considered a \enquote{word} judgment to be equivalent to a \enquote{canonical} judgment. This may be false sometimes (e.g., \enquote{oh} may be coded as a real word by laboratory experts, although it is a non-canonical syllable), but we could not have a \enquote{word} judgment in our Zooniverse annotations because that requires context (which compromises privacy -- see next section).
 
-Coders were also given a \enquote{Don't Mark} option, which they were instructed to use if the segment did not sound like a segment made by the target child, or if there is any overlapping speech or other noise in the background which could affect acoustic analyses. This category is broader than the \enquote{Junk} category used by Zooniverse annotators, which is explained in the next section.
+Coders were also given a \enquote{Don't Mark} option, which they were instructed to use if the segment did not sound like a segment made by the target child, or if there is any overlapping speech or other noise in the background which could affect acoustic analyses. This category is broader than the \enquote{Junk} category used by Zooniverse annotators, which is explained in the next section. Training materials for laboratory coders are available from Hamrick, Seidl, and Kelleher (2021).
 
 This process resulted in high levels of inter-rater agreement: Two or more of the three total coders who annotated that segment agreed on 97.20\% of the lab-annotated segments.
 
@@ -338,7 +340,7 @@ Since all of these results are very similar to those obtained when collapsing ac
 
 Next, we looked at whether having more segments from each child may lead to more reliable metrics. We observed a non-significant trend {[}Welch t(17.94)=-1.20{]} for lower number of segments in the Angelman syndrome group (M = 512.20, range 302-901) than among low-risk control infants (M = 614.60, range 343-1038), likely because of the lower volubility among the former group of children. Moreover, these numbers of segments are much larger than those used in previous work relying on citizen science classifications (Cychosz et al., 2021). We therefore asked whether the correlations between laboratory and Zooniverse child-level estimates are affected by how much data were extracted from each child by under-sampling. Since Cychosz et al. (2021) extracted 100 segments from each child in their study, we randomly sampled 100 segments from each of our children's data, and recalculated the Linguistic and Canonical Proportions based only on these 100 labels. We repeated this process 50 times, to assess the extent to which the association between laboratory- and Zooniverse-derived metrics varied in each random sample (e.g., the correlation between Linguistic Proportion as estimated using Zooniverse coding on the one hand, and Linguistic Proportion as estimated using laboratory coding on the other).
 
-The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2, \enquote{100 seg} rows), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, especially in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was {[}.569,.878{]}; for the Angelman syndrome group {[}.493,.95{]}; for the low-risk group {[}.481,.911{]}. For Canonical Proportion, the range of correlations found for all infants was {[}.815,.964{]}; for the Angelman syndrome group {[}-.001,.94{]}; for the low-risk group {[}.859,.992{]}.
+The mean correlations across 50 runs were lower than those recovered using all segments from each child (see Table 2, \enquote{100 seg} rows), particularly for the low-risk younger infants, and for Linguistic Proportion. This may indicate that, especially in some groups of infants, 100 segments may not be sufficient to capture a stable estimate of the child's Linguistic and Canonical Proportions. We also observed quite a bit of variance across the 50 runs. For Linguistic Proportion, the range of correlations found for all infants was {[}.647,.888{]}; for the Angelman syndrome group {[}.517,.95{]}; for the low-risk group {[}.605,.903{]}. For Canonical Proportion, the range of correlations found for all infants was {[}.849,.962{]}; for the Angelman syndrome group {[}.222,.942{]}; for the low-risk group {[}.818,.977{]}.
 
 \hypertarget{discussion}{%
 \subsection{Discussion}\label{discussion}}
@@ -465,19 +467,19 @@ All seg AS & .89 & .855\\
 \hline
 Chunks AS & .845 & .866\\
 \hline
-100 seg AS & .791 & .632\\
+100 seg AS & .806 & .721\\
 \hline
 All seg LR & .83 & .966\\
 \hline
 Chunks LR & .841 & .974\\
 \hline
-100 seg LR & .787 & .943\\
+100 seg LR & .795 & .939\\
 \hline
 All seg all & .821 & .938\\
 \hline
 Chunks all & .845 & .963\\
 \hline
-100 seg all & .771 & .905\\
+100 seg all & .783 & .909\\
 \hline
 \end{tabular}
 \end{table}
@@ -566,6 +568,9 @@ Halpern, R., \& Coelho, R. (2016). Excessive crying in infants. \emph{Jornal de 
 \leavevmode\hypertarget{ref-hamrick2019capturing}{}%
 Hamrick, L., Seidl, A., \& Kelleher, B. (2019). Capturing variability in early language skills among children with Angelman syndrome: A novel semi-automated approach. \emph{Presented at the Angelman Biomarkers and Outcome Measures Alliance Scientific Meeting}.
 
+\leavevmode\hypertarget{ref-hamrick2021si}{}%
+Hamrick, L., Seidl, A., \& Kelleher, B. (2021). Annotation manual. Retrieved from \url{https://osf.io/x3nqe/?view_only=4d42fdb50108467bb37ec807c53672f3}
+
 \leavevmode\hypertarget{ref-hamrick2019measurement}{}%
 Hamrick, L., \& Tonnsen, B. (2019). Measurement and characterization of early social communication in children with Angelman syndrome. In A. Sadhwani \& K. Okoniewski (Eds.), \emph{Advances in characterizing developmental trajectories in Angelman syndrome across the lifespan, Gatlinburg conference}. San Antonio, TX.
 
@@ -631,6 +636,7 @@ Yao, X., Micheletti, M., Johnson, M., \& Barbaro, K. de. (2020). Classification 
 
 \leavevmode\hypertarget{ref-yeh2019using}{}%
 Yeh, S.-L., Chao, G.-Y., Su, B.-H., Huang, Y.-L., Lin, M.-H., Tsai, Y.-C., \ldots{} others. (2019). Using attention networks and adversarial augmentation for Styrian dialect, continuous sleepiness and baby sound recognition. In \emph{INTERSPEECH} (pp. 2398--2402).
+
 
 \clearpage
 \renewcommand{\listfigurename}{Figure captions}

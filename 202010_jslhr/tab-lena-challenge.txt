@@ -1,0 +1,9 @@
+	Recall	x	Label frequency
+	C2019B	LENA	C2019B
+Crying	70.6	78.0	669
+Laughing	41.5	56.0	149
+Non-can.	24.1	77.0	4485
+Canonical	66.4	59.0	1426
+Junk	67.3	1.0	4575
+UAR	54.0	41.0		
+WAR	49.9	57.0

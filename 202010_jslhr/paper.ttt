@@ -40,19 +40,19 @@ All seg AS & .89 & .855\\
 \hline
 Chunks AS & .845 & .866\\
 \hline
-100 seg AS & .791 & .632\\
+100 seg AS & .806 & .721\\
 \hline
 All seg LR & .83 & .966\\
 \hline
 Chunks LR & .841 & .974\\
 \hline
-100 seg LR & .787 & .943\\
+100 seg LR & .795 & .939\\
 \hline
 All seg all & .821 & .938\\
 \hline
 Chunks all & .845 & .963\\
 \hline
-100 seg all & .771 & .905\\
+100 seg all & .783 & .909\\
 \hline
 \end{tabular}
 \end{table*}

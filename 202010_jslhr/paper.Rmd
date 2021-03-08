@@ -82,6 +82,7 @@ output            : papaja::apa6_pdf
 
 ```{r setup, include = FALSE}
 
+
 library(groundhog)
 groundhog.day="2021-02-23"
 #groundhog.library('papaja', groundhog.day) #NOTE! THIS IS A POINT OF POTENTIAL NON-REPRODUCIBILITY
@@ -108,7 +109,7 @@ set.seed(42)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 
 #document session info
-capture.output(sessionInfo(),file="lastknit_session_info.txt")
+capture.output(sessionInfo(),file="paper-lastknit_session_info.txt")
 
 printr=function(x) sub("0.", ".", round(x,3))
 
