@@ -117,13 +117,14 @@ printr=function(x) sub("0.", ".", round(x,3))
 
 ```{r read-in}
 
-read.csv("../data_analyses/output/key_info.csv")->x
+read.csv("key_info.csv")->x
 rownames(x)<-x$X
 
 
-read.csv("../data_analyses/output/chunks_maj_judgments.csv")->chunks
+read.csv(".chunks_maj_judgments.csv")->chunks
 
-read.csv("../data_analyses/output/zoo_lab_maj_judgments.csv")->data_all
+read.csv("zoo_lab_maj_judgments.csv")->data_all
+
 
 label_options=c("Canonical" , "Non-Canonical"  ,     "Crying"   ,    "Laughing",        "Junk" )
 

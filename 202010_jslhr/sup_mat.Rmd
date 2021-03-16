@@ -53,7 +53,7 @@ Here we look at to what extent zooniverse and lab annotations match at the level
 ## PHASE 3 -- Generate views on the data: majority judgment on the segment
 
 #dictionary that relates chunk to segment created by Chiara
-dict <- fromJSON(file="../data_analyses/files_from_elsewhere/dict_4.json") 
+dict <- fromJSON(file="dict_4.json") 
 dict.simple=unlist(dict)
 length(dict.simple) 
 dict=data.frame(cbind(dict.simple,gsub(".$","",as.character(names(dict.simple)))))
@@ -65,7 +65,7 @@ length(levels(factor(dict$segmentId_DB)))
 #NOTE!!! THERE ARE TWO CHUNKS MISSING FROM THIS DICTIONARY!!!
 
 #laboratory annotations
-read.csv("../data_analyses/files_from_elsewhere/result_final_lisa.csv")->lab_jud
+read.csv("lab_annotations.csv")->lab_jud
 dim(lab_jud)
 #11982 segments
 
@@ -76,7 +76,7 @@ sum(!(levels(factor(dict$segmentId_DB)) %in% lab_jud$segmentId_DB )) #190 found 
 #assuming that we should follow lab data, I'll kick out any segment not in there
 
 #chunk info
-read.csv("../data_analyses/output/chunks_maj_judgments.csv",colClasses="factor")->maj_jud
+read.csv("chunks_maj_judgments.csv",colClasses="factor")->maj_jud
 maj_jud$AudioData=gsub(".mp3","",maj_jud$filename)
 
 
@@ -101,16 +101,16 @@ length(levels(factor(maj_jud$segmentId_DB))) #12170 segments
 
 table(maj_jud$segmentId_DB,maj_jud$Answer)->mytab #we still create the table with the number of judgments
 
-#but the mytype vector will include n's of each type
-mytype <- rep("",n=length(levels(factor(maj_jud$segmentId_DB))))
-mytype<-ifelse(mytab[,"Canonical"]>0,paste(mytype,"Ca",mytab[,"Canonical"],sep=""),mytype)
-mytype<-ifelse(mytab[,"Non-Canonical"]>0,paste(mytype,"N",mytab[,"Non-Canonical"],sep=""),mytype)
-mytype<-ifelse(mytab[,"Crying"]>0,paste(mytype,"Cr",mytab[,"Crying"],sep=""),mytype)
-mytype<-ifelse(mytab[,"Laughing"]>0,paste(mytype,"L",mytab[,"Laughing"],sep=""),mytype)
-mytype<-ifelse(mytab[,"Junk"]>0,paste(mytype,"J",mytab[,"Junk"],sep=""),mytype)
-
-levels(factor(mytype))
-#there are over 350 combinations!! So we won't do that
+# #but the mytype vector will include n's of each type
+# mytype <- rep("",n=length(levels(factor(maj_jud$segmentId_DB))))
+# mytype<-ifelse(mytab[,"Canonical"]>0,paste(mytype,"Ca",mytab[,"Canonical"],sep=""),mytype)
+# mytype<-ifelse(mytab[,"Non-Canonical"]>0,paste(mytype,"N",mytab[,"Non-Canonical"],sep=""),mytype)
+# mytype<-ifelse(mytab[,"Crying"]>0,paste(mytype,"Cr",mytab[,"Crying"],sep=""),mytype)
+# mytype<-ifelse(mytab[,"Laughing"]>0,paste(mytype,"L",mytab[,"Laughing"],sep=""),mytype)
+# mytype<-ifelse(mytab[,"Junk"]>0,paste(mytype,"J",mytab[,"Junk"],sep=""),mytype)
+# 
+# levels(factor(mytype))
+# #there are over 350 combinations!! So we won't do that
 
 mytype <- rep("",n=length(levels(factor(maj_jud$segmentId_DB))))
 mytype<-ifelse(mytab[,"Canonical"]>0,paste(mytype,"Ca",sep=""),mytype)
@@ -130,19 +130,41 @@ dim(all_jud)
 levels(factor(all_jud$ChildID)) 
 length(levels(factor(all_jud$ChildID)))#all 20 kids here
 
+# create columns with names that match the following chunks
+all_jud$Zoon_classif = all_jud$Answer
+all_jud$lab = all_jud$Major_Choice
+
+# for the lab case, simplify
+all_jud$lab[all_jud$lab=="Canonical syllables"]<-"Ca"
+all_jud$lab[all_jud$lab=="Words"]<-"Ca"
+all_jud$lab[all_jud$lab=="Crying"]<-"Cr"
+all_jud$lab[all_jud$lab=="Laughing"]<-"L"
+all_jud$lab[all_jud$lab=="Don't mark"]<-"J"
+all_jud$lab[all_jud$lab=="None"]<-""
+all_jud$lab[all_jud$lab=="Non-canonical syllables"]<-"N"
+
+table(all_jud$lab)
+table(all_jud$Zoon_classif)
+
+#remove classes with fewer than 10 instances
+table(all_jud$Zoon_classif)[table(all_jud$Zoon_classif)<10]
+all_jud=all_jud[!(all_jud$Zoon_classif %in% names(table(all_jud$Zoon_classif)[table(all_jud$Zoon_classif)<10])),]
+
+#remove classes with no majority judgment
+all_jud=all_jud[all_jud$Zoon_classif !="",]
+all_jud=all_jud[all_jud$lab !="",]
+dim(all_jud)
 
 
+all_jud$Zoon_classif=factor(all_jud$Zoon_classif)
+all_jud$lab=factor(all_jud$lab, levels=levels(all_jud$Zoon_classif))
 ```
 
 
 
 ```{r cm}
 
-
-
-table(data_all$lab)
-table(data_all$Zoon_classif)
-mycf=confusionMatrix(data_all$lab, data_all$Zoon_classif, dnn = c("Lab","Zooniverse"))
+mycf=confusionMatrix(all_jud$lab, all_jud$Zoon_classif, dnn = c("Lab","Zooniverse"))
 conf_tab=mycf$table
 # this package uses sensitivity & specificity
 #Sensitivity=recall
@@ -158,7 +180,7 @@ Precision means: If a segment was called X by zooniverse coders, what proportion
 ```{r prec}
 colsums=colSums(conf_tab)
 my_conf_tab=conf_tab
-for(i in 1:18) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
+for(i in 1:dim(my_conf_tab)[2]) my_conf_tab[,i]=my_conf_tab[,i]/colsums[i]
 colSums(my_conf_tab)
 prop_cat=data.frame(my_conf_tab*100) #generates precision because columns
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
@@ -169,7 +191,7 @@ stall=merge(stall,prop_cat[c("id","pr")])
 ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
  geom_tile(aes(fill= rescale(pr)), colour = "white") +
   geom_text(aes(label = paste(round(pr),"%")), vjust = -1,size=2) +
-  geom_text(aes(label = Freq), vjust = 1,size=1) +
+#  geom_text(aes(label = Freq), vjust = 1,size=1) +
   scale_fill_gradient(low = "white", high = "red", name = "Percentage") +
      theme(legend.position = "none") +
   xlab("Zooniverse") + ylab("Lab") +
@@ -183,7 +205,7 @@ Recall means: If a segment was called X by lab coders, what proportion of the ti
 ```{r rec}
 rowsums=rowSums(conf_tab)
 my_conf_tab=conf_tab
-for(i in 1:18) my_conf_tab[,i]=my_conf_tab[,i]/rowsums[i]
+for(i in 1:dim(my_conf_tab)[1]) my_conf_tab[,i]=my_conf_tab[,i]/rowsums[i]
 rowSums(my_conf_tab)
 prop_cat=data.frame(conf_tab/rowSums(conf_tab)*100)  #generates recall because rows
 prop_cat$id=paste(prop_cat$Lab,prop_cat$Zooniverse)
@@ -202,16 +224,17 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 
 ```
 
+## Read in & clean up final data
 
 ```{r read-in}
 
-read.csv("../data_analyses/output/key_info.csv")->x
+read.csv("key_info.csv")->x
 rownames(x)<-x$X
 
 
-read.csv("../data_analyses/output/chunks_maj_judgments.csv")->chunks
+read.csv(".chunks_maj_judgments.csv")->chunks
 
-read.csv("../data_analyses/output/zoo_lab_maj_judgments.csv")->data_all
+read.csv("zoo_lab_maj_judgments.csv")->data_all
 
 label_options=c("Canonical" , "Non-Canonical"  ,     "Crying"   ,    "Laughing",        "Junk" )
 
@@ -248,12 +271,70 @@ demo_data_fn<-unique(demo_data_fn)
 
 ```
 
+```{r clean up, echo=F}
+#dim(data_all) #11980    16
+# remove non-majority labels from lab
+data_all[data_all$Num_Agreement>0,]->data_all
+#dim(data_all) # 11647    16
+
+# remove non-majority labels from zooniverse
+data_all[data_all$Zoon_classif %in% label_options,]->data_all
+#dim(data_all) # 11268    16
+
+
+#and reset the factors for cleanliness
+data_all$Zoon_classif=factor(data_all$Zoon_classif, levels=label_options)
+data_all$lab=factor(data_all$lab, levels=label_options)
+sample_data<-cbind(data_all$lab,data_all$Zoon_classif)
+
+
+table_zoon=round(table(data_all$Zoon)/sum(table(data_all$Zoon))*100,2)
+table_lab=round(table(data_all$lab)/sum(table(data_all$lab))*100,2)
+```
+
+```{r prepare data by child, echo=F}
+
+#get the ns by child, then calculate the linguistic proportion & canonical proportion, separately for zooniverse & lab
+ztab=table(data_all$filename,data_all$Zoon_classif)
+z_lp =rowSums(ztab[,c("Canonical","Non-Canonical")])/rowSums(ztab[,-which(colnames(ztab) %in% c("Junk"))])
+z_cp =ztab[,c("Canonical")]/rowSums(ztab[,c("Canonical","Non-Canonical")])
+
+ltab=table(data_all$filename,data_all$lab)
+l_lp =rowSums(ltab[,c("Canonical","Non-Canonical")])/rowSums(ltab[,-which(colnames(ztab) %in% c("Junk"))])
+l_cp =ltab[,c("Canonical")]/rowSums(ltab[,c("Canonical","Non-Canonical")])
+
+#and also get Junk from zooniverse
+z_Junk=ztab[,c("Junk")]/rowSums(ztab)
+
+  
+#put all the proportions together
+if(sum(rownames(ztab)==rownames(ltab))==dim(ztab)[1]) proportions=cbind(rownames(ztab),z_lp,z_cp,l_lp,l_cp,z_Junk) else print("oops this code needs to be more complex because we don't have the same kids for the two proportions")
+colnames(proportions)[1]<-"filename"
+
+#ages=aggregate(data_all$Age,by=list(data_all$ChildID),mean) #this is a weird way of adding ages, since all of the ages for a given child should be the same if there is only one recording, and if there are multiple recordings, then we should not get the mean
+#improvement: now we merge with a demo data tab, but note this is merged with child id, so the problem of multiple recs per child is still there
+
+# Created demo_data with filenames. Use filenames instead of childIDs to merge proportions and demo data.
+
+merge(proportions,demo_data_fn,by="filename")->proportions
+colnames(proportions)[dim(proportions)[2]]<-"Age"
+
+#cbinding results in text, so we numerize the proportions
+for(thisvar in c("z_lp","z_cp","l_lp","l_cp","z_Junk")) proportions[,thisvar]=as.numeric(as.character(proportions[,thisvar]))
+
+#add median Junk
+proportions$median_Junk<-ifelse(proportions$z_Junk<median(proportions$z_Junk),"lower_Junk","higher_Junk")
+
+#summary(proportions)
+
+merge(data_all,proportions,all=T)->data_all
+```
+
 ## Separate confusion matrices for Angelman syndrome children
 
 ```{r}
-data_as_td<-left_join(data_all,demo_data,on="ChildID")
 # CM with just AS kids
-data_AS<-subset(data_as_td, Diagnosis=="AngelmanSyndrome")
+data_AS<-subset(data_all, Diagnosis=="AngelmanSyndrome")
 mycf=confusionMatrix(data_AS$lab, data_AS$Zoon_classif, dnn = c("Lab","Zooniverse"))
 conf_tab=mycf$table
 mycf
@@ -306,7 +387,7 @@ ggplot(data = stall, mapping = aes(y = Lab, x=Zooniverse)) +
 
 ```{r}
 # CM with just TD kids
-data_TD<-subset(data_as_td, Diagnosis=="Low-RiskControl")
+data_TD<-subset(data_all, Diagnosis=="Low-RiskControl")
 mycf=confusionMatrix(data_TD$lab, data_TD$Zoon_classif, dnn = c("Lab","Zooniverse"))
 conf_tab=mycf$table
 mycf
