@@ -81,23 +81,17 @@ output            : papaja::apa6_pdf
 ---
 
 ```{r setup, include = FALSE}
-
-
-library(groundhog)
-groundhog.day="2021-02-23"
-#groundhog.library('papaja', groundhog.day) #NOTE! THIS IS A POINT OF POTENTIAL NON-REPRODUCIBILITY
-library(papaja) #NOTE!
-groundhog.library('tidyverse', groundhog.day)
-groundhog.library('dplyr', groundhog.day)
-groundhog.library('ggplot2', groundhog.day)
-groundhog.library('rmarkdown', groundhog.day)
-groundhog.library('caret', groundhog.day)
-groundhog.library('scales', groundhog.day)
-groundhog.library('kableExtra', groundhog.day)
-groundhog.library('rel', groundhog.day)
-groundhog.library('ggpubr', groundhog.day)
-groundhog.library('lme4', groundhog.day)
-groundhog.library('e1071', groundhog.day)
+library(rel)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+library(lme4)
+library(e1071)
+library(papaja)
+library(caret)
+library(scales)
+library(kableExtra)
 
 #knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE, fig.pos = "T")
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE)
@@ -121,7 +115,7 @@ read.csv("key_info.csv")->x
 rownames(x)<-x$X
 
 
-read.csv(".chunks_maj_judgments.csv")->chunks
+read.csv("chunks_maj_judgments.csv")->chunks
 
 read.csv("zoo_lab_maj_judgments.csv")->data_all
 
