@@ -878,7 +878,7 @@ knitr::include_graphics("zooniverse-pufig.pdf")
 
 
 ```{r fig-process, comment=F, message=F, hide = T, warning = F, echo = F, fig.cap = "Correspondence between LENA-identified segments (which can contain one or more vocalizations) and chunks. Segments and chunks are collectively referred to as clips because they are parts of the longer audio recording. Notice that clips are first annotated by multiple people, and these judgments are then combined into a single label based on simple majority. To compare laboratory and Zooniverse annotations at the level of segments, chunk-level labels are combined using the hierarchy Canonical > Non-canonical > Crying > Laughing > Junk."}
-knitr::include_graphics("fig_levels.key.pdf")
+knitr::include_graphics("fig_levels.pdf")
 
 ```
 
@@ -888,7 +888,7 @@ knitr::include_graphics("fig_levels.key.pdf")
 prettynames=c("Linguistic Proportion (Zoon.)","Canonical Proportion (Zoon.)",
              "Linguistic Proportion (Lab)","Canonical Proportion (Lab)" )
 names(prettynames)<-c("z_lp","z_cp","l_lp","l_cp")
-mycols=c("black","red")
+mycols=c("red","black")
 names(mycols)<-c("Low-RiskControl","AngelmanSyndrome")
 mypch=c(4,20)
 names(mypch)<-c("Low-RiskControl","AngelmanSyndrome")
@@ -904,7 +904,17 @@ par(mar = c(4, 4, 1, 1))
 myr=matrix(NA,nrow=4,ncol=2)
 rownames(myr)<-c("z_lp","z_cp","l_lp","l_cp")
 colnames(myr)<-c("AS","LR")
-mylb=myhb=myn=myp =myr #this is an ugly way of creating 5 matrices
+mylb=myhb=myn=myp =myr #this is an ugly way of creating 6 matrices
+
+#to improve legibility of figures, providing the coordinates to offset the text
+mytext<-rbind(
+  cbind(-.1,-.1,0,-.2), #"z_lp"
+  cbind(+.1,+.1,-.1,+.3), #"z_cp"
+  cbind(-.1,-.1,0,-.2), #"l_lp"
+  cbind(+.1,+.1,-.1,+.25) #"l_cp"
+)
+rownames(mytext)<-c("z_lp","z_cp","l_lp","l_cp")
+colnames(mytext)<-c("AS.x","AS.y","LR.x","LR.y")
 
 for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) {
 
@@ -913,7 +923,7 @@ for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) {
   plot(proportions[,thisvar]~proportions$Age, pch=mypch[proportions$Diagnosis],xlab="Age (months)",ylab=prettynames[thisvar],
        col=mycols[proportions$Diagnosis],
          ylim=myrange)
-  abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+  abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black",lty=2)
 
   #get cor properties
   thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar],proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"])
@@ -924,7 +934,9 @@ for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) {
     myp[thisvar,"AS"]=round(thiscor$p.value,3)
     
     #add r to figure
-  text(mean(proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"]),mean(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar]),paste0("r=",myr[thisvar,"AS"]),col="black")
+  text(
+    mean(proportions$Age[proportions$Diagnosis=="AngelmanSyndrome"])+mytext[thisvar,"AS.x"],mean(proportions[proportions$Diagnosis=="AngelmanSyndrome",thisvar])+mytext[thisvar,"AS.y"],
+    paste0("r=",myr[thisvar,"AS"]),col="black")
 
   #repeat for LR  
     abline(lm(proportions[,thisvar]~proportions$Age,subset=c(proportions$Diagnosis!="AngelmanSyndrome")),col="red")
@@ -939,7 +951,9 @@ for(thisvar in c("z_lp","z_cp","l_lp","l_cp")) {
     
     #add r to figure
     
-    text(mean(proportions$Age[proportions$Diagnosis!="AngelmanSyndrome"]),mean(proportions[proportions$Diagnosis!="AngelmanSyndrome",thisvar]),paste0("r=",myr[thisvar,"LR"]),col="red")
+    text(mean(proportions$Age[proportions$Diagnosis!="AngelmanSyndrome"])+mytext[thisvar,"LR.x"],
+         mean(proportions[proportions$Diagnosis!="AngelmanSyndrome",thisvar])+mytext[thisvar,"LR.y"],
+         paste0("r=",myr[thisvar,"LR"]),col="red")
 }
 #dev.off()
 ```
@@ -1035,7 +1049,7 @@ lims=range(c(proportions[,"z_lp"],proportions[,"l_lp"]))
        col=mycols[proportions$Diagnosis], pch=mypch[proportions$Diagnosis])
   lines(c(0,1),c(0,1),lty=2,col="darkgray")
 
-  abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black")
+  abline(lm(proportions[,"z_cp"]~proportions[,"l_cp"],subset=c(proportions$Diagnosis=="AngelmanSyndrome")),col="black",lty=2)
 
   #get cor properties
   thiscor=cor.test(proportions[proportions$Diagnosis=="AngelmanSyndrome","z_cp"],proportions[proportions$Diagnosis=="AngelmanSyndrome","l_cp"])
@@ -1161,10 +1175,12 @@ read.table("tab-lena-challenge.txt",header=T,sep ="\t")->tab1
 
 #add zoo & lab data
 recalls=round(stall_r$rec[stall_r$Lab==stall_r$Zooniverse],1)
-names(recalls)<-c("Canonical","Crying","Junk","Laughing","Non-can.")
+names(recalls)<-stall_r$Lab[stall_r$Lab==stall_r$Zooniverse]
+names(recalls)[names(recalls)=="Non-Canonical"]<-"Non-can."
+  #c("Canonical","Crying","Junk","Laughing","Non-can.")
 recalls=recalls[as.character(tab1[2:6,"X"])]
 freqs=table(data_all$Zoon)
-names(freqs)<-c("Canonical","Crying","Junk","Laughing","Non-can.")
+names(freqs)[names(freqs)=="Non-Canonical"]<-"Non-can."
 freqs=freqs[as.character(tab1[2:6,"X"])]
 w=freqs/sum(freqs)
 UAR=round(mean(recalls),1)

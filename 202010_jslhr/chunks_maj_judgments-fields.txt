@@ -1,11 +1,15 @@
-idx: row number
-segmentId_DB: individual ID of the LENA-defined segment
-ChildID: Anonymous individual child identifier
-Age:  child age in months
-filename: name of the original file
-Starttime: time (in seconds) where this segment started in the original wav file
-Endtime: time (in seconds) where this segment ended in the original wav file
-Major_Choice: what the majority choice is for laboratory annotations: Canonical syllables, Non-canonical syllables, Crying, Laughing, Don't mark, None. None means that there was no majority agreement
-Num_Agreement: number of lab annotators who agreed; 0 means that all 3 reported different choices for that segment.
-Zoon_classif: what the majority choice is for Zooniverse annotations: Canonical, Non-Canonical, Crying, Laughing, Junk
+Column names in that file are:
+"","chunk_info","Answer","nvotes","sumvotes","ChildID","filename"
+
+
+
+"": row name, identical to chunk_info
+chunk_info: concatenation of child ID, chunk ID, onset in tens of seconds, and number of chunk in the LENA segment
+Answer: major judgment at the chunk level from zooniverse
+nvotes: number of votes for that major judgment
+sumvotes: total number of votes for that chunk
+ChildID: child ID
+filename: chunk ID
+
+
 
